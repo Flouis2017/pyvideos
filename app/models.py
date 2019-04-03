@@ -1,7 +1,7 @@
 # coding:utf8
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
-import datetime
+from datetime import datetime
 
 app = Flask(__name__)
 
@@ -12,13 +12,14 @@ app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = True
 db = SQLAlchemy(app)
 
 
+# 前台数据模型设计
 # 用户模型(继承db.Model)
 class User(db.Model):
     __tablename__ = "user"
     id = db.Column(db.BigInteger, primary_key=True)     # 主键
     nickname = db.Column(db.String(100), unique=True)   # 昵称
     username = db.Column(db.String(100), unique=True)   # 用户名
-    password = db.Column(db.String(100))                # 密码
+    pwd = db.Column(db.String(100))                     # 密码
     email = db.Column(db.String(100), unique=True)      # 邮箱
     phone = db.Column(db.String(11), unique=True)       # 手机号码
     info = db.Column(db.Text)                           # 个性简介
@@ -31,15 +32,15 @@ class User(db.Model):
 
 
 # 用户登录日志模型
-class UserLog(db.Model):
-    __tablename__ = "user_log"
+class LoginLog(db.Model):
+    __tablename__ = "login_log"
     id = db.Column(db.BigInteger, primary_key=True)     # 主键
     user_id = db.Column(db.BigInteger)                  # 关联的用户id
     ip = db.Column(db.String(100))                      # 登录ip
     create_time = db.Column(db.DateTime, index=True, default=datetime.now)   # 创建时间（即用户登录时间）
 
     def __repr__(self):
-        return "<UserLog %r>" % self.id
+        return "<LoginLog %r>" % self.id
 
 
 # 视频标签模型
@@ -111,32 +112,88 @@ class Collection(db.Model):
         return "<Collection %r>" % self.id
 
 
-# 用户权限模型
+# 后台数据模型设计
+# 权限模型
 class Auth(db.Model):
     __tablename__ = "auth"
     id = db.Column(db.BigInteger, primary_key=True)     # 主键
     name = db.Column(db.String(100), unique=True)       # 名称
     url = db.Column(db.String(100), unique=True)        # 路由
-    create_time = db.Column(db.DateTime, index=True, default=datetime.now)  # 创建时间（即收藏时间）
+    create_time = db.Column(db.DateTime, index=True, default=datetime.now)  # 创建时间
 
     def __repr__(self):
         return "<Auth %r>" % self.name
 
 
-# 用户角色模型
+# 角色模型
 class Role(db.Model):
     __tablename__ = "role"
     id = db.Column(db.BigInteger, primary_key=True)     # 主键
     name = db.Column(db.String(100), unique=True)       # 名称
-    auth_set = db.Column(db.String(600))                # 路由
-    create_time = db.Column(db.DateTime, index=True, default=datetime.now)  # 创建时间（即收藏时间）
+    auth_set = db.Column(db.String(600))                # 路由集合
+    create_time = db.Column(db.DateTime, index=True, default=datetime.now)  # 创建时间
 
     def __repr__(self):
         return "<Role %r>" % self.name
 
 
+# 管理员(用户)模型
+class AdminUser(db.Model):
+    __tablename__ = "admin_user"
+    id = db.Column(db.BigInteger, primary_key=True)     # 主键
+    role_id = db.Column(db.BigInteger)                  # 角色id
+    username = db.Column(db.String(100), unique=True)   # 用户名
+    pwd = db.Column(db.String(100))                     # 密码
+    create_time = db.Column(db.DateTime, index=True, default=datetime.now)  # 创建时间
+
+    def __repr__(self):
+        return "<AdminUser %r>" % self.id
 
 
+# 登录日志模型
+class AdminLoginLog(db.Model):
+    __tablename__ = "admin_login_log"
+    id = db.Column(db.BigInteger, primary_key=True)     # 主键
+    admin_user_id = db.Column(db.BigInteger)            # 管理员id
+    ip = db.Column(db.String(100))                      # 登录ip
+    create_time = db.Column(db.DateTime, index=True, default=datetime.now)   # 创建时间（即登录时间）
+
+    def __repr__(self):
+        return "<AdminLoginLog %r>" % self.id
 
 
+# 操作日志模型
+class AdminOpLog(db.Model):
+    __tablename__ = "admin_op_log"
+    id = db.Column(db.BigInteger, primary_key=True)     # 主键
+    admin_user_id = db.Column(db.BigInteger)            # 管理员id
+    ip = db.Column(db.String(100))                      # 登录ip
+    detail = db.Column(db.String(600))                  # 操作详情
+    create_time = db.Column(db.DateTime, index=True, default=datetime.now)   # 创建时间（即操作时间）
+
+    def __repr__(self):
+        return "<AdminOpLog %r>" % self.id
+
+
+# 数据表自动化生成
+if __name__ == "__main__":
+    # db.create_all()
+
+    # 插入超级管理员角色
+    # role = Role(
+    #     name="超级管理员",
+    #     auth_set=""
+    # )
+    # db.session.add(role)
+    # db.session.commit()
+
+    # 插入管理员
+    from werkzeug.security import generate_password_hash
+    adminUser = AdminUser(
+        role_id=1,
+        username="admin",
+        pwd=generate_password_hash("123456")
+    )
+    db.session.add(adminUser)
+    db.session.commit()
 
