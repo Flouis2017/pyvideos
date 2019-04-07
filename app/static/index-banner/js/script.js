@@ -424,6 +424,6 @@ $(function(){
 		$(".js_pre").hide();
 		$(".js_next").hide();
 
-	}//if else
+	}
 
 });

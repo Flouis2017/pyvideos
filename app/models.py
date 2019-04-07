@@ -17,7 +17,6 @@ db = SQLAlchemy(app)
 class User(db.Model):
     __tablename__ = "user"
     id = db.Column(db.BigInteger, primary_key=True)     # 主键
-    nickname = db.Column(db.String(100), unique=True)   # 昵称
     username = db.Column(db.String(100), unique=True)   # 用户名
     pwd = db.Column(db.String(100))                     # 密码
     email = db.Column(db.String(100), unique=True)      # 邮箱
