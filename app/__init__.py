@@ -1,8 +1,14 @@
 # coding:utf8
 from flask import Flask, render_template
+from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
+
+# 配置数据库连接配置
+app.config["SQLALCHEMY_DATABASE_URI"] = "mysql://root:root@127.0.0.1:3306/pyvideos"
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = True
 app.debug = True
+db = SQLAlchemy(app)
 
 from app.home import home as home_blueprint
 from app.admin import admin as admin_blueprint
