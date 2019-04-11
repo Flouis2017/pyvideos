@@ -12,20 +12,46 @@
     <div class="row">
         <div class="col-md-12">
             <div class="box box-primary">
+                <form role="form" method="post">
+                    <div class="box-body">
+
+                        <!-- 添加成功弹窗 -->
+                        {% for msg in get_flashed_messages(category_filter=["ok"]) %}
+                        <div class="alert alert-success alert-dismissible">
+                            <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+                            <h4><i class="icon fa fa-check"></i> 消息</h4>
+                            {{ msg }}
+                        </div>
+                        {% endfor %}
+
+                        <!-- 添加失败弹窗 -->
+                        {% for msg in get_flashed_messages(category_filter=["err"]) %}
+                        <div class="alert alert-danger alert-dismissible">
+                            <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+                            <h4><i class="icon fa fa-ban"></i> 消息</h4>
+                            {{ msg }}
+                        </div>
+                        {% endfor %}
+
+                        <div class="form-group">
+                            <label for="input_name">{{ form.name.label }}</label>
+                            {{ form.name(required=False) }}
+                            {% for err in form.name.errors %}
+                            <div class="col-md-12">
+                                <span style="color: red;">{{ err }}</span>
+                            </div>
+                            {% endfor %}
+                        </div>
+
+                    </div>
+                    <div class="box-footer">
+                        {{ form.submit }}
+                    </div>
+                    {{ form.csrf_token }}
+                </form>
                 <div class="box-header with-border">
                     <h3 class="box-title">添加标签</h3>
                 </div>
-                <form role="form">
-                    <div class="box-body">
-                        <div class="form-group">
-                            <label for="input_name">标签名称</label>
-                            <input type="text" class="form-control" id="input_name" name="name">
-                        </div>
-                    </div>
-                    <div class="box-footer">
-                        <button type="submit" class="btn btn-primary">添加</button>
-                    </div>
-                </form>
             </div>
         </div>
     </div>

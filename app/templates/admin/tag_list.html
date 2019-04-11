@@ -32,13 +32,13 @@
                                 <th>创建时间</th>
                                 <th>操作事项</th>
                             </tr>
-                            {% for i in range(1, 11) %}
+                            {% for v in page_data.items %}
                             <tr>
-                                <td>{{ i }}</td>
-                                <td>{{ "科幻" ~ i }}</td>
-                                <td>2019-04-07</td>
+                                <td>{{ v.id }}</td>
+                                <td>{{ v.name }}</td>
+                                <td>{{ v.create_time }}</td>
                                 <td>
-                                    <a class="label label-success">编辑</a>
+                                    <a href="" class="label label-success">编辑</a>
                                     &nbsp;
                                     <a class="label label-danger">删除</a>
                                 </td>
@@ -70,5 +70,29 @@
         $('#t-2').addClass("active");
         $('#t-2-2').addClass("active");
     });
+
+    function test_ajax() {
+        $.ajax({
+            type: "POST",
+            url: "/admin/test_ajax",
+            dataType: "json",
+            data: {
+                name: "Flouis",
+                age: 25,
+                gender: "M",
+                Nation: "China"
+            },
+            success: function (res) {
+                console.log(res);
+                $.each(res, function (key) {
+                    console.log(res[key]);
+                });
+            },
+            error: function () {
+                alert("Network error!");
+            }
+        });
+    }
+
 </script>
 {% endblock %}
