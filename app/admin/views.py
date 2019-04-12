@@ -82,7 +82,7 @@ def tag_add():
 @admin_login_req
 def tag_list():
     page = int(request.args.get("page", "1"))
-    size = int(request.args.get("size", "1"))
+    size = int(request.args.get("size", "10"))
     page_data = Tag.query.order_by(
         Tag.create_time.desc()
     ).paginate(page=page, per_page=size)
