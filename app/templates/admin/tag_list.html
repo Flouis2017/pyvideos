@@ -39,9 +39,9 @@
                                 <td>{{ v.name }}</td>
                                 <td>{{ v.create_time }}</td>
                                 <td>
-                                    <a href="" class="label label-success">编辑</a>
+                                    <a href="{{ url_for('admin.tag_edit', id=v.id) }}" class="label label-success">编辑</a>
                                     &nbsp;
-                                    <a class="label label-danger">删除</a>
+                                    <a onclick="del('{{v.id}}')" class="label label-danger">删除</a>
                                 </td>
                             </tr>
                             {% endfor %}
@@ -55,6 +55,31 @@
         </div>
     </div>
 </section>
+
+<!--<div id="confirm_dialog" class="modal modal-danger" style="display: none;">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true" onclick="closeDialog()">×</span>
+                </button>
+                <h4 class="modal-title">Danger Modal</h4>
+            </div>
+            <div class="modal-body">
+                <p>One fine body…</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline pull-left" data-dismiss="modal" onclick="closeDialog()">Close</button>
+                <button type="button" class="btn btn-outline">Save changes</button>
+            </div>
+        </div>
+    </div>
+    <script>
+        function closeDialog() {
+            $('#confirm_dialog').hide();
+        }
+    </script>
+</div>-->
 {% endblock %}
 
 {% block js %}
@@ -85,6 +110,26 @@
                 alert("Network error!");
             }
         });
+    }
+
+    // 删除
+    function del(id) {
+        if(confirm("确定删除该项吗？")){
+            // ajax 请求操作
+            $.ajax({
+                type: "POST",
+                url: "/admin/tag_del",
+                dataType: "json",
+                data: { id: id },
+                success: function (res) {
+                    alert(res.msg);
+                    location.reload();
+                },
+                error: function () {
+                    alert("网络出错！");
+                }
+            });
+        }
     }
 
 </script>
