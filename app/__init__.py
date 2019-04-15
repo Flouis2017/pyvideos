@@ -4,6 +4,9 @@ from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
 
+# 设置json编码，主要用在前后端交互时中文的显示
+app.config['JSON_AS_ASCII'] = False
+
 # 配置数据库连接配置
 app.config["SQLALCHEMY_DATABASE_URI"] = "mysql://root:root@127.0.0.1:3306/pyvideos"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = True

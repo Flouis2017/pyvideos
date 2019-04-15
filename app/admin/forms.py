@@ -62,3 +62,19 @@ class TagForm(FlaskForm):
         }
     )
 
+
+# 视频表单
+class VideoForm(FlaskForm):
+    title = StringField(
+        label="标题",
+        validators=[
+            DataRequired("请输入标题！")
+        ],
+        description="标题",
+        render_kw={
+            "class": "form-control",
+            "id": "input_name"
+        }
+    )
+
+
