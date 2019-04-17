@@ -6,7 +6,7 @@ from app.models import *
 from functools import wraps
 from app import db
 from app.admin.result import ResultEnum
-from sqlalchemy import text
+from app.common.util import SqlUtil
 
 
 # 登录拦截器(注意装饰器的写法)
@@ -119,22 +119,10 @@ def test_ajax():
     age = form.get("age")
     gender = form.get("gender")
     print(name, age, gender)
-    # json_resp = {"code": 200, "msg": "Ajax Success!", "data": None}
     sql = "SELECT au.id AS user_id, au.username AS username, r.name AS role_name, r.auth_set AS auth_set" \
           " FROM admin_user au INNER JOIN role r ON au.role_id = r.id where au.id = :user_id"
-    res = db.session.execute(text(sql), {"user_id": "1"}).fetchall()   # [()]
-    print(res)
-    json_list = []
-    for row in res:
-        row = to_dict(row)
-        json_list.append(row)
-    print(json_list)
-    return jsonify(json_list)
 
-
-def to_dict(data):
-    my_column_names = ["user_id", "username", "role_name", "auth_set"]
-    return dict(zip(my_column_names, data))
+    return jsonify(SqlUtil.exe_sql(sql, {"user_id": 1}))
 
 
 # 删除标签

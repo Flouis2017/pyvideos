@@ -4,16 +4,41 @@
 # @Desc : ==============================================
 # I make my dream come true by code.
 # ======================================================
+from sqlalchemy import text
+from app import db
+import re
 
 
 # 自定义sql工具类，用于执行原生sql，将查询结果封装成[{}]
 class SqlUtil:
 
+    # 获取column_names:
+    @staticmethod
+    def get_column_names(sql):
+        regex = r"AS [\w]+|aS [\w]+|As [\w]+|as [\w]+"
+        res = re.findall(regex, sql)
+        print(res)
+        for i in range(0, len(res)):
+            res[i] = res[i][3:]
+        return res
+
     # 元组转字典
     @staticmethod
-    def tuple_to_dict(self, data, column_names):
-        return dict(zip(column_names, data))
+    def tuple_to_dict(column_names, tuple_data):
+        if len(tuple_data) != len(column_names):
+            raise Exception('Error may occurred by sql with no "As" ')
+        return dict(zip(column_names, tuple_data))
 
-
+    @staticmethod
+    def exe_sql(sql, param):
+        _list = []
+        if param:
+            res = db.session.execute(text(sql), param).fetchall()
+        else:
+            res = db.session.execute(text(sql)).fetchall()
+        column_names = SqlUtil.get_column_names(sql)
+        for row in res:
+            _list.append(SqlUtil.tuple_to_dict(column_names, row))
+        return _list
 
 
