@@ -15,11 +15,10 @@ class SqlUtil:
     # 获取column_names:
     @staticmethod
     def get_column_names(sql):
-        regex = r"AS [\w]+|aS [\w]+|As [\w]+|as [\w]+"
+        regex = r"AS\s+[\w]+|aS\s+[\w]+|As\s+[\w]+|as\s+[\w]+"
         res = re.findall(regex, sql)
-        print(res)
         for i in range(0, len(res)):
-            res[i] = res[i][3:]
+            res[i] = res[i][3:].strip()
         return res
 
     # 元组转字典
