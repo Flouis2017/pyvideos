@@ -4,9 +4,13 @@ from flask import render_template, redirect, url_for, flash, session, request, j
 from app.admin.forms import *
 from app.models import *
 from functools import wraps
-from app import db
+from app import db, app
 from app.admin.result import ResultEnum
 from app.common.util import SqlUtil
+from werkzeug.utils import secure_filename
+import os
+import uuid
+import datetime
 
 
 # 登录拦截器(注意装饰器的写法)
@@ -18,6 +22,13 @@ def admin_login_req(f):
         return f(*args, **kwargs)
 
     return decorator
+
+
+# 修改文件名称
+def change_filename(filename):
+    file_info = os.path.splitext(filename)
+    filename = datetime.datetime.now().strftime("%Y%m%d%H%M%S") + str(uuid.uuid4().hex) + file_info[-1]
+    return filename
 
 
 @admin.route("/")
@@ -141,102 +152,158 @@ def tag_del():
     return jsonify(ResultEnum.obj2json(ResultEnum.SUCCESS.value))
 
 
+# 添加视频
 @admin.route("/video_add/", methods=["GET", "POST"])
 @admin_login_req
 def video_add():
-    return render_template("admin/video_add.html")
+    form = VideoForm()
+    if form.validate_on_submit():
+        try:
+            data = form.data
+            file_url = secure_filename(form.url.data.filename)
+            file_logo = secure_filename(form.logo.data.filename)
+            up_dir_path = app.config["UP_DIR"]
+            if not os.path.exists(up_dir_path):
+                os.makedirs(up_dir_path)
+                # os.chmod(up_dir_path, "rw")
+            url = change_filename(file_url)
+            logo = change_filename(file_logo)
+
+            # 保存文件
+            form.url.data.save(up_dir_path + "/" + url)
+            form.logo.data.save(up_dir_path + "/" + logo)
+
+            video = Video(
+                title=data["title"],
+                url=url,
+                info=data["info"],
+                logo=logo,
+                star=data["star"],
+                play_amount=0,
+                comment_amount=0,
+                tag_id=data["tag_id"],
+                area=data["area"],
+                release_time=data["release_time"],
+                length=data["length"]
+            )
+            db.session.add(video)
+            db.session.commit()
+            flash("添加视频成功！", "ok")
+        except Exception as e:
+            print(e)
+            flash("服务器异常，添加视频失败！", "err")
+
+        return redirect(url_for("admin.video_add"))
+
+    return render_template("admin/video_add.html", form=form)
 
 
+# 视频列表
 @admin.route("/video_list/", methods=["GET", "POST"])
 @admin_login_req
 def video_list():
     return render_template("admin/video_list.html")
 
 
+# 添加预告
 @admin.route("/preview_add/", methods=["GET", "POST"])
 @admin_login_req
 def preview_add():
     return render_template("admin/preview_add.html")
 
 
+# 预告列表
 @admin.route("/preview_list/", methods=["GET", "POST"])
 @admin_login_req
 def preview_list():
     return render_template("admin/preview_list.html")
 
 
+# 用户列表
 @admin.route("/user_list/", methods=["GET", "POST"])
 @admin_login_req
 def user_list():
     return render_template("admin/user_list.html")
 
 
+# 用户查看
 @admin.route("/user_view/", methods=["GET", "POST"])
 @admin_login_req
 def user_view():
     return render_template("admin/user_view.html")
 
 
+# 评论列表
 @admin.route("/comment_list/", methods=["GET", "POST"])
 @admin_login_req
 def comment_list():
     return render_template("admin/comment_list.html")
 
 
+# 收藏列表
 @admin.route("/collection_list/", methods=["GET", "POST"])
 @admin_login_req
 def collection_list():
     return render_template("admin/collection_list.html")
 
 
+# 后台操作记录列表
 @admin.route("/admin_op_log_list/", methods=["GET", "POST"])
 @admin_login_req
 def admin_op_log_list():
     return render_template("admin/admin_op_log_list.html")
 
 
+# 后台登录记录列表
 @admin.route("/admin_login_log_list/", methods=["GET", "POST"])
 @admin_login_req
 def admin_login_log_list():
     return render_template("admin/admin_login_log_list.html")
 
 
+# 客户端登录记录列表
 @admin.route("/login_log_list/", methods=["GET", "POST"])
 @admin_login_req
 def login_log_list():
     return render_template("admin/login_log_list.html")
 
 
+# 添加权限
 @admin.route("/auth_add/", methods=["GET", "POST"])
 @admin_login_req
 def auth_add():
     return render_template("admin/auth_add.html")
 
 
+# 权限列表
 @admin.route("/auth_list/", methods=["GET", "POST"])
 @admin_login_req
 def auth_list():
     return render_template("admin/auth_list.html")
 
 
+# 添加角色
 @admin.route("/role_add/", methods=["GET", "POST"])
 @admin_login_req
 def role_add():
     return render_template("admin/role_add.html")
 
 
+# 角色列表
 @admin.route("/role_list/", methods=["GET", "POST"])
 @admin_login_req
 def role_list():
     return render_template("admin/role_list.html")
 
 
+# 添加管理员
 @admin.route("/admin_user_add/", methods=["GET", "POST"])
 @admin_login_req
 def admin_user_add():
     return render_template("admin/admin_user_add.html")
 
 
+# 管理员列表
 @admin.route("/admin_user_list/", methods=["GET", "POST"])
 @admin_login_req
 def admin_user_list():
