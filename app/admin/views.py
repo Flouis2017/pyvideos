@@ -119,6 +119,7 @@ def tag_list():
     page_data = Tag.query.order_by(
         Tag.create_time.desc()
     ).paginate(page=page, per_page=size)
+    print(page_data)
     return render_template("admin/tag_list.html", page_data=page_data)
 
 
@@ -153,7 +154,7 @@ def tag_del():
 
 
 # 添加视频
-@admin.route("/video_add/", methods=["GET", "POST"])
+@admin.route("/video_add", methods=["GET", "POST"])
 @admin_login_req
 def video_add():
     form = VideoForm()
@@ -199,112 +200,116 @@ def video_add():
 
 
 # 视频列表
-@admin.route("/video_list/", methods=["GET", "POST"])
+@admin.route("/video_list", methods=["GET", "POST"])
 @admin_login_req
 def video_list():
-    return render_template("admin/video_list.html")
+    page = int(request.args.get("page", "1"))
+    size = int(request.args.get("size", "10"))
+    page_data = Video.query.join(Tag).filter(Tag.id == Video.tag_id)\
+        .order_by(Video.create_time.desc()).paginate(page=page, per_page=size)
+    return render_template("admin/video_list.html", page_data=page_data)
 
 
 # 添加预告
-@admin.route("/preview_add/", methods=["GET", "POST"])
+@admin.route("/preview_add", methods=["GET", "POST"])
 @admin_login_req
 def preview_add():
     return render_template("admin/preview_add.html")
 
 
 # 预告列表
-@admin.route("/preview_list/", methods=["GET", "POST"])
+@admin.route("/preview_list", methods=["GET", "POST"])
 @admin_login_req
 def preview_list():
     return render_template("admin/preview_list.html")
 
 
 # 用户列表
-@admin.route("/user_list/", methods=["GET", "POST"])
+@admin.route("/user_list", methods=["GET", "POST"])
 @admin_login_req
 def user_list():
     return render_template("admin/user_list.html")
 
 
 # 用户查看
-@admin.route("/user_view/", methods=["GET", "POST"])
+@admin.route("/user_view", methods=["GET", "POST"])
 @admin_login_req
 def user_view():
     return render_template("admin/user_view.html")
 
 
 # 评论列表
-@admin.route("/comment_list/", methods=["GET", "POST"])
+@admin.route("/comment_list", methods=["GET", "POST"])
 @admin_login_req
 def comment_list():
     return render_template("admin/comment_list.html")
 
 
 # 收藏列表
-@admin.route("/collection_list/", methods=["GET", "POST"])
+@admin.route("/collection_list", methods=["GET", "POST"])
 @admin_login_req
 def collection_list():
     return render_template("admin/collection_list.html")
 
 
 # 后台操作记录列表
-@admin.route("/admin_op_log_list/", methods=["GET", "POST"])
+@admin.route("/admin_op_log_list", methods=["GET", "POST"])
 @admin_login_req
 def admin_op_log_list():
     return render_template("admin/admin_op_log_list.html")
 
 
 # 后台登录记录列表
-@admin.route("/admin_login_log_list/", methods=["GET", "POST"])
+@admin.route("/admin_login_log_list", methods=["GET", "POST"])
 @admin_login_req
 def admin_login_log_list():
     return render_template("admin/admin_login_log_list.html")
 
 
 # 客户端登录记录列表
-@admin.route("/login_log_list/", methods=["GET", "POST"])
+@admin.route("/login_log_list", methods=["GET", "POST"])
 @admin_login_req
 def login_log_list():
     return render_template("admin/login_log_list.html")
 
 
 # 添加权限
-@admin.route("/auth_add/", methods=["GET", "POST"])
+@admin.route("/auth_add", methods=["GET", "POST"])
 @admin_login_req
 def auth_add():
     return render_template("admin/auth_add.html")
 
 
 # 权限列表
-@admin.route("/auth_list/", methods=["GET", "POST"])
+@admin.route("/auth_list", methods=["GET", "POST"])
 @admin_login_req
 def auth_list():
     return render_template("admin/auth_list.html")
 
 
 # 添加角色
-@admin.route("/role_add/", methods=["GET", "POST"])
+@admin.route("/role_add", methods=["GET", "POST"])
 @admin_login_req
 def role_add():
     return render_template("admin/role_add.html")
 
 
 # 角色列表
-@admin.route("/role_list/", methods=["GET", "POST"])
+@admin.route("/role_list", methods=["GET", "POST"])
 @admin_login_req
 def role_list():
     return render_template("admin/role_list.html")
 
 
 # 添加管理员
-@admin.route("/admin_user_add/", methods=["GET", "POST"])
+@admin.route("/admin_user_add", methods=["GET", "POST"])
 @admin_login_req
 def admin_user_add():
     return render_template("admin/admin_user_add.html")
 
 
 # 管理员列表
-@admin.route("/admin_user_list/", methods=["GET", "POST"])
+@admin.route("/admin_user_list", methods=["GET", "POST"])
 @admin_login_req
 def admin_user_list():
     return render_template("admin/admin_user_list.html")

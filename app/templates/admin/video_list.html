@@ -1,4 +1,5 @@
 {% extends "admin/admin.html" %}
+{% import "ui/admin_page.html" as pg %}
 
 {% block content %}
 <section class="content-header">
@@ -40,17 +41,17 @@
                                 <th>发布时间</th>
                                 <th>操作事项</th>
                             </tr>
-                            {% for i in range(1, 11) %}
+                            {% for v in page_data.items %}
                             <tr>
-                                <td>{{ i }}</td>
-                                <td>环太平洋</td>
-                                <td>5分钟</td>
-                                <td>科幻</td>
-                                <td>美国</td>
-                                <td>5</td>
-                                <td>100</td>
-                                <td>10</td>
-                                <td>2017-01-01</td>
+                                <td>{{ v.id }}</td>
+                                <td>{{ v.title }}</td>
+                                <td>{{ v.length }}</td>
+                                <td>{{ v.video_tag.name }}</td>
+                                <td>{{ v.area }}</td>
+                                <td>{{ v.star }}</td>
+                                <td>{{ v.play_amount }}</td>
+                                <td>{{ v.comment_amount }}</td>
+                                <td>{{ v.create_time }}</td>
                                 <td>
                                     <a class="label label-success">编辑</a>
                                     &nbsp;
@@ -62,15 +63,7 @@
                     </table>
                 </div>
                 <div class="box-footer clearfix">
-                    <ul class="pagination pagination-sm no-margin pull-right">
-                        <li><a href="#">首页</a></li>
-                        <li><a href="#">上一页</a></li>
-                        <li><a href="#">1</a></li>
-                        <li><a href="#">2</a></li>
-                        <li><a href="#">3</a></li>
-                        <li><a href="#">下一页</a></li>
-                        <li><a href="#">尾页</a></li>
-                    </ul>
+                    {{ pg.page(page_data, "admin.video_list") }}
                 </div>
             </div>
         </div>

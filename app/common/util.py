@@ -40,4 +40,10 @@ class SqlUtil:
             _list.append(SqlUtil.tuple_to_dict(column_names, row))
         return _list
 
+    @staticmethod
+    def get_page_sql(page, size):
+        if page < 1:
+            raise RuntimeError("page number cannot less than 1!")
+        offset = (page - 1) * size
+        return " limit " + str(offset) + ", " + str(size) + " "
 
