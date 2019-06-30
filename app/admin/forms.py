@@ -5,6 +5,10 @@ from wtforms.validators import DataRequired, ValidationError
 from app.models import AdminUser, Tag
 
 
+# 视频表单中标签域需要
+tags = Tag.query.all()
+
+
 # StringField对应的前端input元素type是text
 # PasswordField对应的前端input元素type是password
 # 管理员登录(验证)表单,定义完表单后，在前端使用{{ <属性名> }}这种方式去填充界面后，flask会帮我们做好表单验证
@@ -61,10 +65,6 @@ class TagForm(FlaskForm):
             "class": "btn btn-primary"
         }
     )
-
-
-# 视频表单中标签域需要
-tags = Tag.query.all()
 
 
 # 视频表单

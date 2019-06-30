@@ -39,7 +39,7 @@ class Tag(db.Model):
     id = db.Column(db.BigInteger, primary_key=True)     # 主键
     name = db.Column(db.String(100), unique=True)       # 标签名称
     create_time = db.Column(db.DateTime, index=True, default=datetime.now)  # 创建时间
-    videos = db.relationship("Video", backref="video_tag")    # 关联视频模型
+    # videos = db.relationship("Video", backref="video_tag")    # 关联视频模型
 
     def __repr__(self):
         return "<Tag %r>" % self.name
@@ -56,7 +56,8 @@ class Video(db.Model):
     star = db.Column(db.SmallInteger)                   # 星级
     play_amount = db.Column(db.BigInteger)              # 播放量
     comment_amount = db.Column(db.BigInteger)           # 评论量
-    tag_id = db.Column(db.BigInteger, db.ForeignKey("tag.id"))  # 所属的标签id（外键关联）
+    # tag_id = db.Column(db.BigInteger, db.ForeignKey("tag.id"))  # 所属的标签id（外键关联）
+    tag_id = db.Column(db.BigInteger)                   # 所属的标签id（外键关联）
     area = db.Column(db.String(50), default="")         # 地区
     release_time = db.Column(db.Date)                   # 发布日期
     length = db.Column(db.String(100))                  # 时长

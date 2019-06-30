@@ -93,20 +93,20 @@ def tag_add():
 @admin.route("/tag_edit", methods=["GET", "POST"])
 @admin_login_req
 def tag_edit():
-    tag_id = int(request.args.get("id"))
-    tag = Tag.query.get_or_404(tag_id)
+    id = int(request.args.get("id"))
+    tag = Tag.query.get_or_404(id)
     form = TagForm()
     if form.validate_on_submit():
         data = form.data
         cnt = Tag.query.filter_by(name=data["name"]).count()
         if tag.name != data["name"] and cnt >= 1:
             flash("已存在！", "err")
-            return redirect(url_for("admin.tag_edit", id=tag_id))
+            return redirect(url_for("admin.tag_edit", id=id))
         tag.name = data["name"]
         db.session.add(tag)
         db.session.commit()
         flash("操作成功", "ok")
-        return redirect(url_for("admin.tag_edit", id=tag_id))
+        return redirect(url_for("admin.tag_edit", id=id))
     return render_template("admin/tag_edit.html", form=form, tag=tag)
 
 
@@ -143,13 +143,15 @@ def test_ajax():
 def tag_del():
     try:
         form = request.form
-        id = int(form.get("id"))
-        tag = Tag.query.filter_by(id=id).first_or_404()
+        tag_id = int(form.get("id"))
+        tag = Tag.query.filter_by(id=tag_id).first_or_404()
         db.session.delete(tag)
         db.session.commit()
     except Exception as e:
         print(e)
+        ResultEnum.FAIL.value.msg = "服务器异常，删除失败"
         return jsonify(ResultEnum.obj2json(ResultEnum.FAIL.value))
+    ResultEnum.SUCCESS.value.msg = "删除成功"
     return jsonify(ResultEnum.obj2json(ResultEnum.SUCCESS.value))
 
 
@@ -205,9 +207,87 @@ def video_add():
 def video_list():
     page = int(request.args.get("page", "1"))
     size = int(request.args.get("size", "10"))
-    page_data = Video.query.join(Tag).filter(Tag.id == Video.tag_id)\
+    page_data = db.session.query(Video.id, Video.title, Video.length, Tag.name, Video.area,  Video.star,
+                                 Video.play_amount, Video.comment_amount, Video.release_time) \
+        .join(Tag, Tag.id == Video.tag_id).filter() \
         .order_by(Video.create_time.desc()).paginate(page=page, per_page=size)
-    return render_template("admin/video_list.html", page_data=page_data)
+    # page_data = Video.query.join(Tag, Tag.id == Video.tag_id).filter()\
+    #     .order_by(Video.create_time.desc()).paginate(page=page, per_page=size)
+    return render_template("admin/video_list.html", page_data=page_data, col_num=9)
+
+
+# 删除视频
+@admin.route("/video_del", methods=["GET", "POST"])
+@admin_login_req
+def video_del():
+    try:
+        video_id = int(request.form.get("id"))
+        video = Video.query.filter_by(id=video_id).first_or_404()
+        db.session.delete(video)
+        db.session.commit()
+        # TODO 实际上还需要删除视频相关的评论和相应的文件（视频源和封面图片）
+
+    except Exception as e:
+        print(e)
+        ResultEnum.FAIL.value.msg = "服务器异常，删除失败"
+        return jsonify(ResultEnum.obj2json(ResultEnum.FAIL.value))
+    ResultEnum.SUCCESS.value.msg = "删除成功"
+    return jsonify(ResultEnum.obj2json(ResultEnum.SUCCESS.value))
+
+
+# 添加视频
+@admin.route("/video_edit", methods=["GET", "POST"])
+@admin_login_req
+def video_edit():
+    id = int(request.args.get("id"))
+    video = Video.query.get_or_404(id)
+    form = VideoForm()
+    form.url.validators = []
+    form.logo.validators = []
+    if request.method == "GET":
+        form.info.data = video.info
+        form.tag_id.data = video.tag_id
+        form.star.data = video.star
+    if form.validate_on_submit():
+        try:
+            data = form.data
+            # 去重处理：
+            title = data["title"]
+            video_cnt = Video.query.filter_by(title=title).count()
+            if video_cnt >= 1 and video.title != title:
+                flash("片名已存在！", "err")
+                return redirect(url_for("admin.video_edit", id=video.id))
+
+            # 修改数据：
+            up_dir_path = app.config["UP_DIR"]
+            if not os.path.exists(up_dir_path):
+                os.makedirs(up_dir_path)
+            if form.url.data.filename != "":
+                file_url = secure_filename(form.url.data.filename)
+                video.url = change_filename(file_url)
+                form.url.data.save(up_dir_path + "/" + video.url)
+            if form.logo.data.filename != "":
+                file_logo = secure_filename(form.logo.data.filename)
+                video.logo = change_filename(file_logo)
+                form.logo.data.save(up_dir_path + "/" + video.logo)
+
+            video.star = data["star"]
+            video.tag_id = data["tag_id"]
+            video.info = data["info"]
+            video.title = title
+            video.area = data["area"]
+            video.length = data["length"]
+            video.release_time = data["release_time"]
+            db.session.add(video)
+            db.session.commit()
+            flash("编辑视频成功！", "ok")
+        except Exception as e:
+            print(e)
+            flash("服务器异常，编辑视频失败！", "err")
+
+        return redirect(url_for("admin.video_edit", id=video.id))
+
+    return render_template("admin/video_edit.html", form=form, video=video)
 
 
 # 添加预告

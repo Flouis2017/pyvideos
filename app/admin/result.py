@@ -26,10 +26,11 @@ class ResultEnum(Enum):
         return {
             "code": obj.code,
             "msg": obj.msg,
-            "data": obj.msg
+            "data": obj.data
         }
 
 
+# ResultEnum.SUCCESS.value.msg = "xxxx"
 # print(ResultEnum.obj2json(ResultEnum.SUCCESS.value))
 
 

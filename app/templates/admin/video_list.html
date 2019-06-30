@@ -43,20 +43,14 @@
                             </tr>
                             {% for v in page_data.items %}
                             <tr>
-                                <td>{{ v.id }}</td>
-                                <td>{{ v.title }}</td>
-                                <td>{{ v.length }}</td>
-                                <td>{{ v.video_tag.name }}</td>
-                                <td>{{ v.area }}</td>
-                                <td>{{ v.star }}</td>
-                                <td>{{ v.play_amount }}</td>
-                                <td>{{ v.comment_amount }}</td>
-                                <td>{{ v.create_time }}</td>
-                                <td>
-                                    <a class="label label-success">编辑</a>
-                                    &nbsp;
-                                    <a class="label label-danger">删除</a>
-                                </td>
+								{% for i in range(col_num) %}
+									<td>{{ v[i] }}</td>
+								{% endfor %}
+								<td>
+									<a href="{{ url_for('admin.video_edit', id=v[0]) }}" class="label label-success">编辑</a>
+									&nbsp;
+									<a class="label label-danger" onclick="del({{ v[0] }})">删除</a>
+								</td>
                             </tr>
                             {% endfor %}
                         </tbody>
@@ -77,5 +71,25 @@
         $('#t-3').addClass("active");
         $('#t-3-2').addClass("active");
     });
+
+    // 删除
+    function del(id) {
+        if(confirm("确定删除该项吗？")){
+            // ajax 请求操作
+            $.ajax({
+                type: "POST",
+                url: "/admin/video_del",
+                dataType: "json",
+                data: { id: id },
+                success: function (res) {
+					alert(res.msg);
+                    location.reload();
+                },
+                error: function () {
+                    alert("网络出错！");
+                }
+            });
+        }
+    }
 </script>
 {% endblock %}
