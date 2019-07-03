@@ -163,6 +163,13 @@ def video_add():
     if form.validate_on_submit():
         try:
             data = form.data
+
+            # 视频标题不允许重复添加
+            cnt = Video.query.filter_by(title=data["title"]).count()
+            if cnt >= 1:
+                flash("视频标题已存在！", "err")
+                return redirect(url_for("admin.video_add"))
+
             file_url = secure_filename(form.url.data.filename)
             file_logo = secure_filename(form.logo.data.filename)
             up_dir_path = app.config["UP_DIR"]
@@ -294,7 +301,41 @@ def video_edit():
 @admin.route("/preview_add", methods=["GET", "POST"])
 @admin_login_req
 def preview_add():
-    return render_template("admin/preview_add.html")
+    form = PreviewForm()
+    if form.validate_on_submit():
+        try:
+            data = form.data
+
+            # 预告标题不允许重复添加
+            title = data["title"]
+            cnt = Preview.query.filter_by(title=title).count()
+            if cnt >= 1:
+                flash("预告标题已存在！", "err")
+                return redirect(url_for("admin.preview_add"))
+
+            # 保存logo图片：
+            logo_file_name = secure_filename(form.logo.data.filename)
+            up_dir_path = app.config["UP_DIR"]
+            if not os.path.exists(up_dir_path):
+                os.makedirs(up_dir_path)
+            new_logo_file_name = change_filename(logo_file_name)
+            form.logo.data.save(up_dir_path + "/" + new_logo_file_name)
+
+            # 数据库落地
+            preview = Preview(
+                title=title,
+                logo=new_logo_file_name
+            )
+            db.session.add(preview)
+            db.session.commit()
+            flash("添加预告成功", "ok")
+        except Exception as e:
+            print(e)
+            flash("服务器异常，添加预告失败！", "err")
+
+        return redirect(url_for("admin.preview_add"))
+
+    return render_template("admin/preview_add.html", form=form)
 
 
 # 预告列表
