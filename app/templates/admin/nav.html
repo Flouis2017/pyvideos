@@ -24,7 +24,7 @@
         <ul class="treeview-menu">
             <li id="t-2-1">
                 <a href="{{ url_for('admin.tag_add') }}">
-                    <i class="fa fa-circle-o"></i>添加标签
+                    <i class="fa fa-circle-o"></i>添加/编辑标签
                 </a>
             </li>
             <li id="t-2-2">
@@ -43,7 +43,7 @@
         <ul class="treeview-menu">
             <li id="t-3-1">
                 <a href="{{ url_for('admin.video_add') }}">
-                    <i class="fa fa-circle-o"></i>添加视频
+                    <i class="fa fa-circle-o"></i>添加/编辑视频
                 </a>
             </li>
             <li id="t-3-2">
@@ -62,11 +62,11 @@
         <ul class="treeview-menu">
             <li id="t-4-1">
                 <a href="{{ url_for('admin.preview_add') }}">
-                    <i class="fa fa-circle-o"></i>添加预告
+                    <i class="fa fa-circle-o"></i>添加/编辑预告
                 </a>
             </li>
             <li id="t-4-2">
-                <a href="{{ url_for('admin.preview_list') }}">
+                <a href="{{ url_for('admin.preview_list', page=1) }}">
                     <i class="fa fa-circle-o"></i>预告列表
                 </a>
             </li>
@@ -147,7 +147,7 @@
         <ul class="treeview-menu">
             <li id="t-9-1">
                 <a href="{{ url_for('admin.auth_add') }}">
-                    <i class="fa fa-circle-o"></i>添加权限
+                    <i class="fa fa-circle-o"></i>添加/编辑权限
                 </a>
             </li>
             <li id="t-9-2">
@@ -166,7 +166,7 @@
         <ul class="treeview-menu">
             <li id="t-10-1">
                 <a href="{{ url_for('admin.role_add') }}">
-                    <i class="fa fa-circle-o"></i>添加角色
+                    <i class="fa fa-circle-o"></i>添加/编辑角色
                 </a>
             </li>
             <li id="t-10-2">
@@ -185,7 +185,7 @@
         <ul class="treeview-menu">
             <li id="t-11-1">
                 <a href="{{ url_for('admin.admin_user_add') }}">
-                    <i class="fa fa-circle-o"></i>添加管理员
+                    <i class="fa fa-circle-o"></i>添加/编辑管理员
                 </a>
             </li>
             <li id="t-11-2">

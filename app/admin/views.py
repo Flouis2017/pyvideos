@@ -31,6 +31,12 @@ def change_filename(filename):
     return filename
 
 
+# 删除文件
+def del_file(file_path):
+    if os.path.exists(file_path):
+        os.remove(file_path)
+
+
 @admin.route("/")
 @admin_login_req
 def index():
@@ -198,10 +204,10 @@ def video_add():
             )
             db.session.add(video)
             db.session.commit()
-            flash("添加视频成功！", "ok")
+            flash("添加成功！", "ok")
         except Exception as e:
             print(e)
-            flash("服务器异常，添加视频失败！", "err")
+            flash("服务器异常，添加失败！", "err")
 
         return redirect(url_for("admin.video_add"))
 
@@ -233,7 +239,9 @@ def video_del():
         db.session.delete(video)
         db.session.commit()
         # TODO 实际上还需要删除视频相关的评论和相应的文件（视频源和封面图片）
-
+        up_dir_path = app.config["UP_DIR"]
+        del_file(up_dir_path + "/" + video.url)
+        del_file(up_dir_path + "/" + video.logo)
     except Exception as e:
         print(e)
         ResultEnum.FAIL.value.msg = "服务器异常，删除失败"
@@ -270,10 +278,14 @@ def video_edit():
             if not os.path.exists(up_dir_path):
                 os.makedirs(up_dir_path)
             if form.url.data.filename != "":
+                # 先将原先的文件删除：
+                del_file(up_dir_path+"/"+video.url)
+                # 保存新文件
                 file_url = secure_filename(form.url.data.filename)
                 video.url = change_filename(file_url)
                 form.url.data.save(up_dir_path + "/" + video.url)
             if form.logo.data.filename != "":
+                del_file(up_dir_path+"/"+video.logo)
                 file_logo = secure_filename(form.logo.data.filename)
                 video.logo = change_filename(file_logo)
                 form.logo.data.save(up_dir_path + "/" + video.logo)
@@ -287,10 +299,10 @@ def video_edit():
             video.release_time = data["release_time"]
             db.session.add(video)
             db.session.commit()
-            flash("编辑视频成功！", "ok")
+            flash("编辑成功！", "ok")
         except Exception as e:
             print(e)
-            flash("服务器异常，编辑视频失败！", "err")
+            flash("服务器异常，编辑失败！", "err")
 
         return redirect(url_for("admin.video_edit", id=video.id))
 
@@ -342,7 +354,75 @@ def preview_add():
 @admin.route("/preview_list", methods=["GET", "POST"])
 @admin_login_req
 def preview_list():
-    return render_template("admin/preview_list.html")
+    page = int(request.args.get("page", "1"))
+    size = int(request.args.get("size", "10"))
+    page_data = db.session.query(Preview.id, Preview.title, Preview.logo, Preview.create_time) \
+                  .order_by(Preview.create_time.desc()).paginate(page=page, per_page=size)
+    return render_template("admin/preview_list.html", page_data=page_data, col_num=4)
+
+
+# 删除预告
+@admin.route("/preview_del", methods=["GET", "POST"])
+@admin_login_req
+def preview_del():
+    try:
+        preview_id = int(request.form.get("id"))
+        preview = Preview.query.filter_by(id=preview_id).first_or_404()
+
+        # 将对应的预告封面(logo)文件删除
+        del_file(app.config["UP_DIR"] + "/" + preview.logo)
+        # 数据库相应记录删除
+        db.session.delete(preview)
+        db.session.commit()
+    except Exception as e:
+        print(e)
+        ResultEnum.FAIL.value.msg = "服务器异常，删除失败"
+        return jsonify(ResultEnum.obj2json(ResultEnum.FAIL.value))
+    ResultEnum.SUCCESS.value.msg = "删除成功"
+    return jsonify(ResultEnum.obj2json(ResultEnum.SUCCESS.value))
+
+
+# 添加预告
+@admin.route("/preview_edit", methods=["GET", "POST"])
+@admin_login_req
+def preview_edit():
+    id = int(request.args.get("id"))
+    preview = Preview.query.get_or_404(id)
+    form = PreviewForm()
+    form.logo.validators = []   # 去掉封面为空校验
+    if form.validate_on_submit():
+        try:
+            data = form.data
+            # 去重处理：
+            title = data["title"]
+            cnt = Preview.query.filter_by(title=title).count()
+            if cnt >= 1 and preview.title != title:
+                flash("预告标题已存在！", "err")
+                return redirect(url_for("admin.preview_edit", id=preview.id))
+
+            # 更新logo图片：
+            up_dir_path = app.config["UP_DIR"]
+            if not os.path.exists(up_dir_path):
+                os.makedirs(up_dir_path)
+            if form.logo.data.filename != "":
+                del_file(up_dir_path + "/" + preview.logo)
+                logo_filename = secure_filename(form.logo.data.filename)
+                preview.logo = change_filename(logo_filename)
+                form.logo.data.save(up_dir_path + "/" + preview.logo)
+
+            # 更新数据：
+            preview.title = title
+            db.session.add(preview)
+            db.session.commit()
+            flash("编辑成功", "ok")
+
+        except Exception as e:
+            print(e)
+            flash("服务器异常，编辑预告失败！", "err")
+
+        return redirect(url_for("admin.preview_edit", id=preview.id))
+
+    return render_template("admin/preview_edit.html", form=form, preview=preview)
 
 
 # 用户列表
