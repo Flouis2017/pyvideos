@@ -429,7 +429,12 @@ def preview_edit():
 @admin.route("/user_list", methods=["GET", "POST"])
 @admin_login_req
 def user_list():
-    return render_template("admin/user_list.html")
+    page = int(request.args.get("page", "1"))
+    per_page = int(request.args.get("size", "10"))
+    page_data = db.session.query(User.id, User.username, User.email, User.phone, User.avatar, User.create_time) \
+        .order_by(User.create_time.asc()).paginate(page=page, per_page=per_page)
+
+    return render_template("admin/user_list.html", page_data=page_data, col_num=6)
 
 
 # 用户查看
