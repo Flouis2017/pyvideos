@@ -1,4 +1,5 @@
 {% extends "admin/admin.html" %}
+{% import "ui/admin_page.html" as pg %}
 
 {% block content %}
 <section class="content-header">
@@ -25,47 +26,25 @@
                     </div>
                 </div>
                 <div class="box-body box-comments">
-                    <div class="box-comment">
-                        <img class="img-circle img-sm"
-                             src="../../static/admin/dist/img/user3-128x128.jpg" alt="User Image">
-                        <div class="comment-text">
-                            <span class="username">
-                                小美
-                                <span class="text-muted pull-right">
-                                    <i class="fa fa-calendar" aria-hidden="true"></i>
-                                    &nbsp;2017-01-01 12:00:00
-                                </span>
-                            </span>
-                            关于电影<a>《环太平洋》</a>的评论：xxx
-                            <br><a class="label label-danger pull-right">删除</a>
-                        </div>
-                    </div>
-                    <div class="box-comment">
-                        <img class="img-circle img-sm"
-                             src="../../static/admin/dist/img/user5-128x128.jpg" alt="User Image">
-                        <div class="comment-text">
-                            <span class="username">
-                                小丽
-                                <span class="text-muted pull-right">
-                                    <i class="fa fa-calendar" aria-hidden="true"></i>
-                                    &nbsp;2017-01-01 12:00:00
-                                </span>
-                            </span>
-                            关于电影<a>《环太平洋》</a>的评论：xxx
-                            <br><a class="label label-danger pull-right">删除</a>
-                        </div>
-                    </div>
+					{% for v in page_date.items %}
+						<div class="box-comment">
+							<img class="img-circle img-sm" src="{{ url_for('static', filename='upload/avatar/' + v[1]) }}" alt="User Image">
+							<div class="comment-text">
+								<span class="username">
+									{{ v[2] }}
+									<span class="text-muted pull-right">
+										<i class="fa fa-calendar" aria-hidden="true"></i>
+										&nbsp;{{ v[3] }}
+									</span>
+								</span>
+								关于视频<a style="cursor: pointer;">{{ v[4] }}</a>的评论：{{ v[5] }}
+								<br><a class="label label-danger pull-right" onclick="del({{ v[0] }})">删除</a>
+							</div>
+						</div>
+					{% endfor %}
                 </div>
                 <div class="box-footer clearfix">
-                    <ul class="pagination pagination-sm no-margin pull-right">
-                        <li><a href="#">首页</a></li>
-                        <li><a href="#">上一页</a></li>
-                        <li><a href="#">1</a></li>
-                        <li><a href="#">2</a></li>
-                        <li><a href="#">3</a></li>
-                        <li><a href="#">下一页</a></li>
-                        <li><a href="#">尾页</a></li>
-                    </ul>
+                    {{ pg.page(page_date, "admin.comment_list") }}
                 </div>
             </div>
         </div>
@@ -79,5 +58,9 @@
         $('#t-6').addClass("active");
         $('#t-6-1').addClass("active");
     });
+
+    function del(comment_id) {
+		alert("删除评论(id:" + comment_id + ")");
+	}
 </script>
 {% endblock %}

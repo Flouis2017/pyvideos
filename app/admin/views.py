@@ -44,7 +44,7 @@ def index():
 
 
 # 登录
-@admin.route("/login/", methods=["GET", "POST"])
+@admin.route("/login", methods=["GET", "POST"])
 def login():
     form = LoginForm()
     if form.validate_on_submit():
@@ -60,18 +60,39 @@ def login():
 
 
 # 退出
-@admin.route("/logout/", methods=["GET", "POST"])
+@admin.route("/logout", methods=["GET", "POST"])
 @admin_login_req
 def logout():
     session.pop("username", None)
     return redirect(url_for("admin.login"))
 
 
-# 修改密码
-@admin.route("/pwd/", methods=["GET", "POST"])
+# 修改密码页面跳转
+@admin.route("/pwd", methods=["GET", "POST"])
 @admin_login_req
 def pwd():
     return render_template("admin/pwd.html")
+
+
+# 修改密码
+@admin.route("/modify_pwd", methods=["GET", "POST"])
+@admin_login_req
+def modify_pwd():
+    try:
+        newpwd = request.form.get("newpwd")
+        # 获取当前管理员用户
+        admin_user = AdminUser.query.filter_by(username=session["username"]).first()
+        # 更新密码
+        from werkzeug.security import generate_password_hash
+        admin_user.pwd = generate_password_hash(newpwd)
+        db.session.add(admin_user)
+        db.session.commit()
+    except Exception as e:
+        print(e)
+        ResultEnum.FAIL.value.msg = "服务器异常，修改失败"
+        return jsonify(ResultEnum.obj2json(ResultEnum.FAIL.value))
+    ResultEnum.SUCCESS.value.msg = "修改成功"
+    return jsonify(ResultEnum.obj2json(ResultEnum.SUCCESS.value))
 
 
 # 添加标签
@@ -441,21 +462,33 @@ def user_list():
 @admin.route("/user_view", methods=["GET", "POST"])
 @admin_login_req
 def user_view():
-    return render_template("admin/user_view.html")
+    user_id = int(request.args.get("user_id"))
+    user = User.query.get_or_404(user_id)
+    return render_template("admin/user_view.html", user=user)
 
 
 # 评论列表
 @admin.route("/comment_list", methods=["GET", "POST"])
 @admin_login_req
 def comment_list():
-    return render_template("admin/comment_list.html")
+    page = int(request.args.get("page", "1"))
+    per_page = int(request.args.get("size", "10"))
+    page_data = db.session.query(Comment.id, User.avatar, User.username, Comment.create_time, Video.title, Comment.content) \
+        .join(User, Comment.user_id == User.id).join(Video, Comment.video_id == Video.id).filter() \
+        .order_by(Comment.id.desc()).paginate(page=page, per_page=per_page)
+    return render_template("admin/comment_list.html", page_date=page_data)
 
 
 # 收藏列表
 @admin.route("/collection_list", methods=["GET", "POST"])
 @admin_login_req
 def collection_list():
-    return render_template("admin/collection_list.html")
+    page = int(request.args.get("page", "1"))
+    per_page = int(request.args.get("per_page", "10"))
+    page_date = db.session.query(Collection.id, Video.title, User.username, Collection.create_time)\
+        .join(Video, Collection.video_id == Video.id).join(User, Collection.user_id == User.id).filter()\
+        .order_by(Collection.id.desc()).paginate(page=page, per_page=per_page)
+    return render_template("admin/collection_list.html", page_date=page_date, col_num=4)
 
 
 # 后台操作记录列表

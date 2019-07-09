@@ -16,23 +16,49 @@
                 <div class="box-header with-border">
                     <h3 class="box-title">修改密码</h3>
                 </div>
-                <form role="form">
-                    <div class="box-body">
-                        <div class="form-group">
-                            <label for="input_pwd">旧密码</label>
-                            <input type="password" class="form-control" id="input_pwd">
-                        </div>
-                        <div class="form-group">
-                            <label for="input_newpwd">新密码</label>
-                            <input type="password" class="form-control" id="input_newpwd">
-                        </div>
-                    </div>
-                    <div class="box-footer">
-                        <button type="submit" class="btn btn-primary">修改</button>
-                    </div>
-                </form>
+				<div class="box-body">
+					<div class="form-group">
+						<label style="margin-left: 5px;">新密码</label>
+						<input type="password" class="form-control" id="input_newpwd">
+					</div>
+					<div class="form-group">
+						<label style="margin-left: 5px;">确认密码</label>
+						<input type="password" class="form-control" id="input_newpwd_check">
+					</div>
+				</div>
+				<div class="box-footer">
+					<button onclick="modify_pwd()" class="btn btn-primary">修改</button>
+				</div>
             </div>
         </div>
     </div>
 </section>
+{% endblock %}
+
+{% block js %}
+<script>
+    function modify_pwd() {
+    	var newpwd = $.trim($('#input_newpwd').val());
+    	var newpwd_check = $.trim($('#input_newpwd_check').val());
+    	if (newpwd == ""){
+    		alert("新密码不可为空");
+    		return;
+		} else if (newpwd != newpwd_check){
+    		alert("请确认密码！");
+    		return;
+		}
+    	$.ajax({
+			url: "/admin/modify_pwd",
+			type: "POST",
+			dataType: "json",
+			data: { newpwd: newpwd },
+			success: function (res) {
+				alert(res.msg);
+			},
+			error: function () {
+				alert("网络出错！");
+			}
+		});
+	}
+</script>
 {% endblock %}

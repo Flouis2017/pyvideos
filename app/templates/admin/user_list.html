@@ -50,9 +50,9 @@
 									{% endif %}
 								{% endfor %}
                                 <td>
-                                    <a class="label label-success" href="{{ url_for('admin.user_view') }}">查看</a>
+                                    <a class="label label-success" href="{{ url_for('admin.user_view', user_id = v[0]) }}">查看</a>
                                     &nbsp;
-                                    <a class="label label-danger">删除</a>
+                                    <a class="label label-danger" onclick="del({{ v[0] }})">删除</a>
                                 </td>
                             </tr>
                             {% endfor %}
@@ -74,5 +74,9 @@
         $('#t-5').addClass("active");
         $('#t-5-1').addClass("active");
     });
+
+    function del(user_id){
+    	alert("删除用户(id:" + user_id + ")");
+	}
 </script>
 {% endblock %}
