@@ -13,6 +13,15 @@ import uuid
 import datetime
 
 
+# 上下文处理器 —— 封装全局变量
+@admin.context_processor
+def tpl_extra():
+    data = dict(
+        online_date = datetime.datetime.now().strftime("%Y-%m-%d")
+    )
+    return data
+
+
 # 登录拦截器(注意装饰器的写法)
 def admin_login_req(f):
     @wraps(f)
@@ -49,12 +58,13 @@ def login():
     form = LoginForm()
     if form.validate_on_submit():
         data = form.data
-        admin_user = AdminUser.query.filter_by(username=data["username"]).first()
+        username = data["username"]
+        admin_user = AdminUser.query.filter_by(username=username).first()
         if not admin_user.check_pwd(data["pwd"]):
             flash("密码错误！")
             return redirect(url_for("admin.login"))
-
-        session["username"] = data["username"]
+        session["username"] = username
+        session["admin_user_id"] = admin_user.id
         return redirect(request.args.get("next") or url_for("admin.index"))
     return render_template("admin/login.html", form=form)
 
@@ -64,6 +74,7 @@ def login():
 @admin_login_req
 def logout():
     session.pop("username", None)
+    session.pop("admin_user_id", None)
     return redirect(url_for("admin.login"))
 
 
@@ -81,7 +92,7 @@ def modify_pwd():
     try:
         newpwd = request.form.get("newpwd")
         # 获取当前管理员用户
-        admin_user = AdminUser.query.filter_by(username=session["username"]).first()
+        admin_user = AdminUser.query.filter_by(id=session["admin_user_id"]).first()
         # 更新密码
         from werkzeug.security import generate_password_hash
         admin_user.pwd = generate_password_hash(newpwd)

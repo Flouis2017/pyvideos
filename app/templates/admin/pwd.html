@@ -38,8 +38,8 @@
 {% block js %}
 <script>
     function modify_pwd() {
-    	var newpwd = $.trim($('#input_newpwd').val());
-    	var newpwd_check = $.trim($('#input_newpwd_check').val());
+    	var newpwd = $('#input_newpwd').val();
+    	var newpwd_check = $('#input_newpwd_check').val();
     	if (newpwd == ""){
     		alert("新密码不可为空");
     		return;
