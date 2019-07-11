@@ -46,7 +46,7 @@ def del_file(file_path):
         os.remove(file_path)
 
 
-# 添加管理员操作日志
+# 记录管理员操作日志
 def record_admin_op_log(detail):
     admin_op_log = AdminOpLog(
         admin_user_id=session["admin_user_id"],
@@ -54,6 +54,16 @@ def record_admin_op_log(detail):
         detail=detail
     )
     db.session.add(admin_op_log)
+    db.session.commit()
+
+
+# 记录管理员登录日志
+def record_admin_login_log():
+    admin_login_log = AdminLoginLog(
+        admin_user_id=session["admin_user_id"],
+        ip=request.remote_addr
+    )
+    db.session.add(admin_login_log)
     db.session.commit()
 
 
@@ -76,6 +86,10 @@ def login():
             return redirect(url_for("admin.login"))
         session["username"] = username
         session["admin_user_id"] = admin_user.id
+
+        # 登录记录
+        record_admin_login_log()
+
         return redirect(request.args.get("next") or url_for("admin.index"))
     return render_template("admin/login.html", form=form)
 
@@ -196,11 +210,12 @@ def test_ajax():
 @admin_login_req
 def tag_del():
     try:
-        form = request.form
-        tag_id = int(form.get("id"))
+        tag_id = int(request.form.get("id"))
         tag = Tag.query.filter_by(id=tag_id).first_or_404()
+        tag_name = tag.name
         db.session.delete(tag)
         db.session.commit()
+        record_admin_op_log("删除标签 " + tag_name)
     except Exception as e:
         print(e)
         ResultEnum.FAIL.value.msg = "服务器异常，删除失败"
@@ -534,14 +549,23 @@ def admin_op_log_list():
 @admin.route("/admin_login_log_list", methods=["GET", "POST"])
 @admin_login_req
 def admin_login_log_list():
-    return render_template("admin/admin_login_log_list.html")
+    page = request.args.get("page", 1)
+    size = request.args.get("size", 10)
+    page_data = db.session.query(AdminLoginLog.id, AdminUser.username, AdminLoginLog.create_time, AdminLoginLog.ip)\
+        .join(AdminUser, AdminUser.id == AdminLoginLog.admin_user_id).filter()\
+        .order_by(AdminLoginLog.id.desc()).paginate(page=page, per_page=size)
+    return render_template("admin/admin_login_log_list.html", page_data=page_data, col_num=4)
 
 
 # 客户端登录记录列表
 @admin.route("/login_log_list", methods=["GET", "POST"])
 @admin_login_req
 def login_log_list():
-    return render_template("admin/login_log_list.html")
+    page = request.args.get("page", 1)
+    size = request.args.get("size", 10)
+    page_data = db.session.query(LoginLog.id, User.username, LoginLog.create_time, LoginLog.ip)\
+        .join(User, LoginLog.user_id == User.id).filter().order_by().paginate(page=page, per_page=size)
+    return render_template("admin/login_log_list.html", page_data=page_data, col_num=4)
 
 
 # 添加权限
