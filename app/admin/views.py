@@ -46,6 +46,17 @@ def del_file(file_path):
         os.remove(file_path)
 
 
+# 添加管理员操作日志
+def record_admin_op_log(detail):
+    admin_op_log = AdminOpLog(
+        admin_user_id=session["admin_user_id"],
+        ip=request.remote_addr,
+        detail=detail
+    )
+    db.session.add(admin_op_log)
+    db.session.commit()
+
+
 @admin.route("/")
 @admin_login_req
 def index():
@@ -98,6 +109,9 @@ def modify_pwd():
         admin_user.pwd = generate_password_hash(newpwd)
         db.session.add(admin_user)
         db.session.commit()
+
+        # 修改密码日志记录
+        record_admin_op_log("修改密码")
     except Exception as e:
         print(e)
         ResultEnum.FAIL.value.msg = "服务器异常，修改失败"
@@ -112,17 +126,18 @@ def modify_pwd():
 def tag_add():
     form = TagForm()
     if form.validate_on_submit():
-        data = form.data
-        cnt = Tag.query.filter_by(name=data["name"]).count()
+        tag_name = form.data["name"]
+        cnt = Tag.query.filter_by(name=tag_name).count()
         if cnt >= 1:
             flash("已存在！", "err")
             return redirect(url_for("admin.tag_add"))
         new_tag = Tag(
-            name=data["name"]
+            name=tag_name
         )
         db.session.add(new_tag)
         db.session.commit()
         flash("操作成功", "ok")
+        record_admin_op_log("添加标签 " + tag_name)
         return redirect(url_for("admin.tag_add"))
     return render_template("admin/tag_add.html", form=form)
 
@@ -144,6 +159,7 @@ def tag_edit():
         db.session.add(tag)
         db.session.commit()
         flash("操作成功", "ok")
+        record_admin_op_log("编辑标签(id: " + str(id) + ")")
         return redirect(url_for("admin.tag_edit", id=id))
     return render_template("admin/tag_edit.html", form=form, tag=tag)
 
@@ -157,7 +173,7 @@ def tag_list():
     page_data = Tag.query.order_by(
         Tag.create_time.desc()
     ).paginate(page=page, per_page=size)
-    print(page_data)
+    # print(page_data)
     return render_template("admin/tag_list.html", page_data=page_data)
 
 
@@ -464,7 +480,7 @@ def user_list():
     page = int(request.args.get("page", "1"))
     per_page = int(request.args.get("size", "10"))
     page_data = db.session.query(User.id, User.username, User.email, User.phone, User.avatar, User.create_time) \
-        .order_by(User.create_time.asc()).paginate(page=page, per_page=per_page)
+        .order_by(User.id.desc()).paginate(page=page, per_page=per_page)
 
     return render_template("admin/user_list.html", page_data=page_data, col_num=6)
 
@@ -473,7 +489,7 @@ def user_list():
 @admin.route("/user_view", methods=["GET", "POST"])
 @admin_login_req
 def user_view():
-    user_id = int(request.args.get("user_id"))
+    user_id = request.args.get("user_id")
     user = User.query.get_or_404(user_id)
     return render_template("admin/user_view.html", user=user)
 
@@ -482,8 +498,8 @@ def user_view():
 @admin.route("/comment_list", methods=["GET", "POST"])
 @admin_login_req
 def comment_list():
-    page = int(request.args.get("page", "1"))
-    per_page = int(request.args.get("size", "10"))
+    page = request.args.get("page", 1)
+    per_page = request.args.get("size", 10)
     page_data = db.session.query(Comment.id, User.avatar, User.username, Comment.create_time, Video.title, Comment.content) \
         .join(User, Comment.user_id == User.id).join(Video, Comment.video_id == Video.id).filter() \
         .order_by(Comment.id.desc()).paginate(page=page, per_page=per_page)
@@ -494,8 +510,8 @@ def comment_list():
 @admin.route("/collection_list", methods=["GET", "POST"])
 @admin_login_req
 def collection_list():
-    page = int(request.args.get("page", "1"))
-    per_page = int(request.args.get("per_page", "10"))
+    page = request.args.get("page", 1)
+    per_page = request.args.get("per_page", 10)
     page_date = db.session.query(Collection.id, Video.title, User.username, Collection.create_time)\
         .join(Video, Collection.video_id == Video.id).join(User, Collection.user_id == User.id).filter()\
         .order_by(Collection.id.desc()).paginate(page=page, per_page=per_page)
@@ -506,7 +522,12 @@ def collection_list():
 @admin.route("/admin_op_log_list", methods=["GET", "POST"])
 @admin_login_req
 def admin_op_log_list():
-    return render_template("admin/admin_op_log_list.html")
+    page = request.args.get("page", 1)
+    size = request.args.get("size", 10)
+    page_data = db.session.query(AdminOpLog.id, AdminUser.username, AdminOpLog.create_time, AdminOpLog.detail, AdminOpLog.ip)\
+        .join(AdminUser, AdminOpLog.admin_user_id == AdminUser.id).filter()\
+        .order_by(AdminOpLog.id.desc()).paginate(page=page, per_page=size)
+    return render_template("admin/admin_op_log_list.html", page_data=page_data, col_num=5)
 
 
 # 后台登录记录列表
