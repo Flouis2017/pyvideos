@@ -4,8 +4,8 @@
 <section class="content-header">
     <h1>Pyvideos后台管理系统</h1>
     <ol class="breadcrumb">
-        <li><a href="#"><i class="fa fa-dashboard"></i>标签管理</a></li>
-        <li class="active">编辑标签</li>
+        <li><a href="#"><i class="fa fa-dashboard"></i>权限管理</a></li>
+        <li class="active">编辑权限</li>
     </ol>
 </section>
 <section class="content" id="showcontent">
@@ -13,9 +13,9 @@
         <div class="col-md-12">
             <div class="box box-primary">
                 <div class="box-header with-border">
-                    <h3 class="box-title">编辑标签</h3>
+                    <h3 class="box-title">编辑权限</h3>
                 </div>
-                <form role="form" method="post" action="{{ url_for('admin.tag_edit', id=tag.id) }}">
+                <form role="form" method="post" action="{{ url_for('admin.auth_edit', id=auth.id) }}">
                     <div class="box-body">
 
                         <!-- 成功闪现 -->
@@ -38,20 +38,27 @@
 
                         <div class="form-group">
                             <label for="input_name">{{ form.name.label }}</label>
-                            <input type="hidden" name="id" id="tag_id" value="{{ tag.id }}" >
-                            {{ form.name(required=False, value=tag.name) }}
+                            {{ form.name(required=False, value=auth.name) }}
                             {% for err in form.name.errors %}
-                            <div class="col-md-12">
-                                <span style="color: red;">{{ err }}</span>
-                            </div>
+                                <div class="col-md-12">
+                                    <span style="color: red;">{{ err }}</span>
+                                </div>
                             {% endfor %}
                         </div>
-
+                        <div class="form-group">
+                            <label for="input_url">{{ form.url.label }}</label>
+                            {{ form.url(required=False, value=auth.url) }}
+                            {% for err in form.url.errors %}
+                                <div class="col-md-12">
+                                    <span style="color: red;">{{ err }}</span>
+                                </div>
+                            {% endfor %}
+                        </div>
                     </div>
                     <div class="box-footer">
                         {{ form.submit }}
+                        {{ form.csrf_token }}
                     </div>
-                    {{ form.csrf_token }}
                 </form>
             </div>
         </div>
@@ -62,8 +69,8 @@
 {% block js %}
 <script>
     $(function () {
-        $('#t-2').addClass("active");
-        $('#t-2-2').addClass("active");
+        $('#t-9').addClass("active");
+        $('#t-9-1').addClass("active");
     });
 </script>
 {% endblock %}

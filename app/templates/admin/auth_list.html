@@ -1,4 +1,5 @@
 {% extends "admin/admin.html" %}
+{% import "ui/admin_page.html" as pg %}
 
 {% block content %}
 <section class="content-header">
@@ -29,38 +30,29 @@
                     <table class="table table-hover">
                         <tbody>
                             <tr>
-                                <th>编号</th>
+                                <th>ID</th>
                                 <th>名称</th>
                                 <th>地址</th>
                                 <th>创建时间</th>
                                 <th>操作事项</th>
                             </tr>
-                            {% for i in range(1, 11) %}
-                            <tr>
-                                <td>{{ i }}</td>
-                                <td>添加标签</td>
-                                <td>/tag/add/</td>
-                                <td>2019-04-07 11:24:31</td>
-                                <td>
-                                    <a class="label label-success">编辑</a>
-                                    &nbsp;
-                                    <a class="label label-danger">删除</a>
-                                </td>
-                            </tr>
+                            {% for v in page_data.items %}
+								<tr>
+									{% for i in range(col_num) %}
+										<td>{{ v[i] }}</td>
+									{% endfor %}
+									<td>
+										<a href="{{ url_for('admin.auth_edit', id=v[0]) }}" class="label label-success">编辑</a>
+										&nbsp;
+										<a class="label label-danger" onclick="del('{{v[0]}}')">删除</a>
+									</td>
+								</tr>
                             {% endfor %}
                         </tbody>
                     </table>
                 </div>
                 <div class="box-footer clearfix">
-                    <ul class="pagination pagination-sm no-margin pull-right">
-                        <li><a href="#">首页</a></li>
-                        <li><a href="#">上一页</a></li>
-                        <li><a href="#">1</a></li>
-                        <li><a href="#">2</a></li>
-                        <li><a href="#">3</a></li>
-                        <li><a href="#">下一页</a></li>
-                        <li><a href="#">尾页</a></li>
-                    </ul>
+					{{ pg.page(page_data, "admin.auth_list") }}
                 </div>
             </div>
         </div>
@@ -74,5 +66,23 @@
         $('#t-9').addClass("active");
         $('#t-9-2').addClass("active");
     });
+
+    function del(id) {
+        if(confirm("确定删除该权限吗？")){
+            $.ajax({
+                type: "POST",
+                url: "/admin/auth_del",
+                dataType: "json",
+                data: { id: id },
+                success: function (res) {
+                    alert(res.msg);
+                    location.reload();
+                },
+                error: function () {
+                    alert("网络出错！");
+                }
+            });
+        }
+    }
 </script>
 {% endblock %}

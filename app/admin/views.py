@@ -564,7 +564,8 @@ def login_log_list():
     page = int(request.args.get("page", 1))
     size = int(request.args.get("size", 10))
     page_data = db.session.query(LoginLog.id, User.username, LoginLog.create_time, LoginLog.ip)\
-        .join(User, LoginLog.user_id == User.id).filter().order_by().paginate(page=page, per_page=size)
+        .join(User, LoginLog.user_id == User.id).filter()\
+        .order_by(LoginLog.id.desc()).paginate(page=page, per_page=size)
     return render_template("admin/login_log_list.html", page_data=page_data, col_num=4)
 
 
@@ -603,7 +604,59 @@ def auth_add():
 @admin.route("/auth_list", methods=["GET", "POST"])
 @admin_login_req
 def auth_list():
-    return render_template("admin/auth_list.html")
+    page = int(request.args.get("page", 1))
+    size = int(request.args.get("size", 10))
+    page_data = db.session.query(Auth.id, Auth.name, Auth.url, Auth.create_time)\
+        .join().filter().order_by().paginate(page=page, per_page=size)
+    return render_template("admin/auth_list.html", page_data=page_data, col_num=4)
+
+
+# 编辑权限
+@admin.route("/auth_edit", methods=["GET", "POST"])
+@admin_login_req
+def auth_edit():
+    id = int(request.args.get("id"))
+    auth = Auth.query.get_or_404(id)
+    form = AuthForm()
+    if form.validate_on_submit():
+        try:
+            data = form.data
+
+            # 去重处理
+            name = data["name"]
+            cnt = Auth.query.filter_by(name=name).count()
+            if cnt >= 1 and auth.name != name:
+                flash("权限已存在！", "err")
+                return redirect(url_for("admin.auth_edit", id=auth.id))
+
+            # 更新数据
+            auth.name = name
+            auth.url = data["url"]
+            db.session.add(auth)
+            db.session.commit()
+            flash("编辑成功", "ok")
+        except Exception as e:
+            print(e)
+            flash("服务器异常，编辑失败！", "err")
+        return redirect(url_for("admin.auth_edit", id=auth.id))
+    return render_template("admin/auth_edit.html", form=form, auth=auth)
+
+
+# 删除权限
+@admin.route("/auth_del", methods=["GET", "POST"])
+@admin_login_req
+def auth_del():
+    try:
+        auth_id = int(request.form.get("id"))
+        auth = Auth.query.get_or_404(auth_id)
+        db.session.delete(auth)
+        db.session.commit()
+    except Exception as e:
+        print(e)
+        ResultEnum.FAIL.value.msg = "服务器异常，删除失败！"
+        return jsonify(ResultEnum.obj2json(ResultEnum.FAIL.value))
+    ResultEnum.SUCCESS.value.msg = "删除成功"
+    return jsonify(ResultEnum.obj2json(ResultEnum.SUCCESS.value))
 
 
 # 添加角色
