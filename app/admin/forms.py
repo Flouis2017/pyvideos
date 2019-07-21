@@ -198,3 +198,35 @@ class PreviewForm(FlaskForm):
         }
     )
 
+
+# 权限表单
+class AuthForm(FlaskForm):
+    name = StringField(
+        label="权限名称",
+        validators=[
+            DataRequired("请输入权限名称！")
+        ],
+        description="权限名称",
+        render_kw={
+            "class": "form-control",
+            "id": "input_name"
+        }
+    )
+    url = StringField(
+        label="权限路径",
+        validators=[
+            DataRequired("请输入权限路径！")
+        ],
+        description="权限路径",
+        render_kw={
+            "class": "form-control",
+            "id": "input_url"
+        }
+    )
+    submit = SubmitField(
+        "保存",
+        render_kw={
+            "class": "btn btn-primary"
+        }
+    )
+

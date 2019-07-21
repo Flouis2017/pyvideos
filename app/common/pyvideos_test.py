@@ -14,7 +14,7 @@ print(video.title, video.id, video.__tablename__)
 class Person:
 
 	def __init__(self, *args, **kwargs):
-		print(kwargs)
+		# print(type(kwargs), kwargs)
 		self.name = kwargs["name"]
 		self.age = kwargs["age"]
 		self.gender = kwargs["gender"]
@@ -26,7 +26,12 @@ class Person:
 
 
 person = Person(name="Flouis", age=25, gender="M")
-print(person)
+print(person.name)
+# print(person["name"]) # TypeError: 'Person' object is not subscriptable
+
+my_dict = {"a": 123, "b": 456, "c": 789}
+print(my_dict["a"])
+# print(my_dict.a) # AttributeError: 'dict' object has no attribute 'a'
 
 # from werkzeug.security import generate_password_hash
 # print(generate_password_hash("123456"))

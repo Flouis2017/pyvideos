@@ -513,8 +513,8 @@ def user_view():
 @admin.route("/comment_list", methods=["GET", "POST"])
 @admin_login_req
 def comment_list():
-    page = request.args.get("page", 1)
-    per_page = request.args.get("size", 10)
+    page = int(request.args.get("page", 1))
+    per_page = int(request.args.get("size", 10))
     page_data = db.session.query(Comment.id, User.avatar, User.username, Comment.create_time, Video.title, Comment.content) \
         .join(User, Comment.user_id == User.id).join(Video, Comment.video_id == Video.id).filter() \
         .order_by(Comment.id.desc()).paginate(page=page, per_page=per_page)
@@ -525,8 +525,8 @@ def comment_list():
 @admin.route("/collection_list", methods=["GET", "POST"])
 @admin_login_req
 def collection_list():
-    page = request.args.get("page", 1)
-    per_page = request.args.get("per_page", 10)
+    page = int(request.args.get("page", 1))
+    per_page = int(request.args.get("per_page", 10))
     page_date = db.session.query(Collection.id, Video.title, User.username, Collection.create_time)\
         .join(Video, Collection.video_id == Video.id).join(User, Collection.user_id == User.id).filter()\
         .order_by(Collection.id.desc()).paginate(page=page, per_page=per_page)
@@ -537,8 +537,8 @@ def collection_list():
 @admin.route("/admin_op_log_list", methods=["GET", "POST"])
 @admin_login_req
 def admin_op_log_list():
-    page = request.args.get("page", 1)
-    size = request.args.get("size", 10)
+    page = int(request.args.get("page", 1))
+    size = int(request.args.get("size", 10))
     page_data = db.session.query(AdminOpLog.id, AdminUser.username, AdminOpLog.create_time, AdminOpLog.detail, AdminOpLog.ip)\
         .join(AdminUser, AdminOpLog.admin_user_id == AdminUser.id).filter()\
         .order_by(AdminOpLog.id.desc()).paginate(page=page, per_page=size)
@@ -549,8 +549,8 @@ def admin_op_log_list():
 @admin.route("/admin_login_log_list", methods=["GET", "POST"])
 @admin_login_req
 def admin_login_log_list():
-    page = request.args.get("page", 1)
-    size = request.args.get("size", 10)
+    page = int(request.args.get("page", 1))
+    size = int(request.args.get("size", 10))
     page_data = db.session.query(AdminLoginLog.id, AdminUser.username, AdminLoginLog.create_time, AdminLoginLog.ip)\
         .join(AdminUser, AdminUser.id == AdminLoginLog.admin_user_id).filter()\
         .order_by(AdminLoginLog.id.desc()).paginate(page=page, per_page=size)
@@ -561,8 +561,8 @@ def admin_login_log_list():
 @admin.route("/login_log_list", methods=["GET", "POST"])
 @admin_login_req
 def login_log_list():
-    page = request.args.get("page", 1)
-    size = request.args.get("size", 10)
+    page = int(request.args.get("page", 1))
+    size = int(request.args.get("size", 10))
     page_data = db.session.query(LoginLog.id, User.username, LoginLog.create_time, LoginLog.ip)\
         .join(User, LoginLog.user_id == User.id).filter().order_by().paginate(page=page, per_page=size)
     return render_template("admin/login_log_list.html", page_data=page_data, col_num=4)
@@ -572,7 +572,31 @@ def login_log_list():
 @admin.route("/auth_add", methods=["GET", "POST"])
 @admin_login_req
 def auth_add():
-    return render_template("admin/auth_add.html")
+    form = AuthForm()
+    if form.validate_on_submit():
+        try:
+            data = form.data
+
+            # 去重处理
+            name = data["name"]
+            cnt = Auth.query.filter_by(name=name).count()
+            if cnt >= 1:
+                flash("权限已存在！", "err")
+                return redirect(url_for("admin.auth_add"))
+
+            # 保存权限(数据库落地)
+            auth = Auth(
+                name=name,
+                url=data["url"]
+            )
+            db.session.add(auth)
+            db.session.commit()
+            flash("添加权限成功", "ok")
+        except Exception as e:
+            print(e)
+            flash("服务器异常，添加权限失败！", "err")
+        return redirect(url_for("admin.auth_add"))
+    return render_template("admin/auth_add.html", form=form)
 
 
 # 权限列表
