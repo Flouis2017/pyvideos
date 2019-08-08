@@ -663,7 +663,30 @@ def auth_del():
 @admin.route("/role_add", methods=["GET", "POST"])
 @admin_login_req
 def role_add():
-    return render_template("admin/role_add.html")
+    form = RoleForm()
+    if form.validate_on_submit():
+        try:
+            data = form.data
+            # 去重处理
+            name = data["name"]
+            cnt = Role.query.filter_by(name=name).count()
+            if cnt >= 1:
+                flash("角色已存在！", "err")
+                return redirect(url_for("admin.role_add"))
+
+            # 数据库落地
+            role = Role(
+                name=name,
+                auth_set=",".join(map(lambda v: str(v), data["auth_set"]))
+            )
+            db.session.add(role)
+            db.session.commit()
+            flash("添加角色成功", "ok")
+        except Exception as e:
+            print(e)
+            flash("服务器异常，添加角色失败！", "err")
+        return redirect(url_for("admin.role_add"))
+    return render_template("admin/role_add.html", form=form)
 
 
 # 角色列表

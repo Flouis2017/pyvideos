@@ -128,7 +128,7 @@ class Role(db.Model):
     __tablename__ = "role"
     id = db.Column(db.BigInteger, primary_key=True)     # 主键
     name = db.Column(db.String(100), unique=True)       # 名称
-    auth_set = db.Column(db.String(600))                # 路由集合
+    auth_set = db.Column(db.String(600))                # 路由(权限主键)集合
     create_time = db.Column(db.DateTime, index=True, default=datetime.now)  # 创建时间
 
     def __repr__(self):

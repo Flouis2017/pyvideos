@@ -1,12 +1,15 @@
 # coding : utf8
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, SubmitField, FileField, TextAreaField, SelectField
+from wtforms import StringField, PasswordField, SubmitField, FileField, TextAreaField, SelectField, SelectMultipleField
 from wtforms.validators import DataRequired, ValidationError
-from app.models import AdminUser, Tag
+from app.models import AdminUser, Tag, Auth
 
 
 # 视频表单中标签域需要
 tags = Tag.query.all()
+
+# 角色表单中权限集合域需要
+auths = Auth.query.all()
 
 
 # StringField对应的前端input元素type是text
@@ -221,6 +224,40 @@ class AuthForm(FlaskForm):
         render_kw={
             "class": "form-control",
             "id": "input_url"
+        }
+    )
+    submit = SubmitField(
+        "保存",
+        render_kw={
+            "class": "btn btn-primary"
+        }
+    )
+
+
+# 角色表单
+class RoleForm(FlaskForm):
+    name = StringField(
+        label="角色名称",
+        validators=[
+            DataRequired("请输入角色名称！")
+        ],
+        description="角色名称",
+        render_kw={
+            "class": "form-control",
+            "id": "input_name"
+        }
+    )
+    auth_set = SelectMultipleField(
+        label="权限集合",
+        validators=[
+            DataRequired("至少需要选择一个权限！")
+        ],
+        coerce=int,
+        choices=[(v.id, v.name) for v in auths],
+        description="权限集合",
+        render_kw={
+            "class": "form-control",
+            "style": "height: 160px;"
         }
     )
     submit = SubmitField(
