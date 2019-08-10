@@ -257,7 +257,7 @@ class RoleForm(FlaskForm):
         description="权限集合",
         render_kw={
             "class": "form-control",
-            "style": "height: 160px;"
+            "style": "height: 170px;"
         }
     )
     submit = SubmitField(

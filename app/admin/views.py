@@ -367,7 +367,7 @@ def video_edit():
             print(e)
             flash("服务器异常，编辑失败！", "err")
 
-        return redirect(url_for("admin.video_edit", id=video.id))
+        return redirect(url_for("admin.video_edit", id=id))
 
     return render_template("admin/video_edit.html", form=form, video=video)
 
@@ -483,7 +483,7 @@ def preview_edit():
             print(e)
             flash("服务器异常，编辑预告失败！", "err")
 
-        return redirect(url_for("admin.preview_edit", id=preview.id))
+        return redirect(url_for("admin.preview_edit", id=id))
 
     return render_template("admin/preview_edit.html", form=form, preview=preview)
 
@@ -638,7 +638,7 @@ def auth_edit():
         except Exception as e:
             print(e)
             flash("服务器异常，编辑失败！", "err")
-        return redirect(url_for("admin.auth_edit", id=auth.id))
+        return redirect(url_for("admin.auth_edit", id=id))
     return render_template("admin/auth_edit.html", form=form, auth=auth)
 
 
@@ -693,7 +693,48 @@ def role_add():
 @admin.route("/role_list", methods=["GET", "POST"])
 @admin_login_req
 def role_list():
-    return render_template("admin/role_list.html")
+    page = int(request.args.get("page", 1))
+    size = int(request.args.get("size", 10))
+    page_data = db.session.query(Role.id, Role.name, Role.create_time)\
+        .paginate(page=page, per_page=size)
+    return render_template("admin/role_list.html", page_data=page_data, col_num=3)
+
+
+# 编辑角色
+@admin.route("/role_edit", methods=["GET", "POST"])
+@admin_login_req
+def role_edit():
+    id = int(request.args.get("id"))
+    role = Role.query.get_or_404(id)
+    form = RoleForm()
+
+    # 权限列表回显
+    if request.method == "GET":
+        auth_str = role.auth_set
+        if auth_str != "" and auth_str is not None:
+            form.auth_set.data = list(map(lambda v: int(v), auth_str.split(",")))
+
+    if form.validate_on_submit():
+        try:
+            data = form.data
+            # 去重处理
+            name = data["name"]
+            cnt = Role.query.filter_by(name=name).count()
+            if cnt >= 1 and role.name != name:
+                flash("角色已存在！", "err")
+                return redirect(url_for("admin.role_edit", id=id))
+
+            # 更新数据
+            role.name = name
+            role.auth_set = ",".join(map(lambda v: str(v), data["auth_set"]))
+            db.session.add(role)
+            db.session.commit()
+            flash("编辑成功", "ok")
+        except Exception as e:
+            print(e)
+            flash("服务器异常，编辑失败！", "err")
+        return redirect(url_for("admin.role_edit", id=id))
+    return render_template("admin/role_edit.html", form=form, role=role)
 
 
 # 添加管理员
