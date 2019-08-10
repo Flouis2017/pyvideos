@@ -737,6 +737,29 @@ def role_edit():
     return render_template("admin/role_edit.html", form=form, role=role)
 
 
+# 删除角色
+@admin.route("/role_del", methods=["GET", "POST"])
+@admin_login_req
+def role_del():
+    try:
+        role_id = int(request.form.get("id"))
+
+        # 如果有管理员绑定了该角色则不允许删除该角色
+        if AdminUser.query.filter_by(role_id=role_id).count() > 0:
+            ResultEnum.FAIL.value.msg = "删除该角色请先解绑相关管理员！"
+            return jsonify(ResultEnum.obj2json(ResultEnum.FAIL.value))
+
+        role = Role.query.get_or_404(role_id)
+        db.session.delete(role)
+        db.session.commit()
+    except Exception as e:
+        print(e)
+        ResultEnum.FAIL.value.msg = "服务器异常，删除失败！"
+        return jsonify(ResultEnum.obj2json(ResultEnum.FAIL.value))
+    ResultEnum.SUCCESS.value.msg = "删除成功"
+    return jsonify(ResultEnum.obj2json(ResultEnum.SUCCESS.value))
+
+
 # 添加管理员
 @admin.route("/admin_user_add", methods=["GET", "POST"])
 @admin_login_req
