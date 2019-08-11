@@ -2,7 +2,7 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField, FileField, TextAreaField, SelectField, SelectMultipleField
 from wtforms.validators import DataRequired, ValidationError
-from app.models import AdminUser, Tag, Auth
+from app.models import AdminUser, Tag, Auth, Role
 
 
 # 视频表单中标签域需要
@@ -10,6 +10,9 @@ tags = Tag.query.all()
 
 # 角色表单中权限集合域需要
 auths = Auth.query.all()
+
+# 管理员表单中所属角色域需要
+roles = Role.query.all()
 
 
 # StringField对应的前端input元素type是text
@@ -267,3 +270,53 @@ class RoleForm(FlaskForm):
         }
     )
 
+
+# 管理员表单
+class AdminUserForm(FlaskForm):
+    username = StringField(
+        label="用户名",
+        validators=[
+            DataRequired("请输入用户名！")
+        ],
+        description="用户名",
+        render_kw={
+            "class": "form-control",
+            "id": "input_name"
+        }
+    )
+    pwd = PasswordField(
+        label="密码",
+        validators=[
+            DataRequired("请输入密码")
+        ],
+        render_kw={
+            "class": "form-control"
+        }
+    )
+    re_pwd = PasswordField(
+        label="确认密码",
+        validators=[
+            DataRequired("请确认密码")
+        ],
+        render_kw={
+            "class": "form-control"
+        }
+    )
+    role_id = SelectField(
+        label="所属角色",
+        validators=[
+            DataRequired("请选择所属角色！")
+        ],
+        coerce=int,
+        choices=[(v.id, v.name) for v in roles],
+        description="所属角色",
+        render_kw={
+            "class": "form-control"
+        }
+    )
+    submit = SubmitField(
+        "保存",
+        render_kw={
+            "class": "btn btn-primary"
+        }
+    )

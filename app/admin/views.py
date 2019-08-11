@@ -764,16 +764,102 @@ def role_del():
 @admin.route("/admin_user_add", methods=["GET", "POST"])
 @admin_login_req
 def admin_user_add():
-    return render_template("admin/admin_user_add.html")
+    form = AdminUserForm()
+    if form.validate_on_submit():
+        try:
+            data = form.data
+
+            # 密码确认校验
+            if data["pwd"] != data["re_pwd"]:
+                flash("请确认密码！", "err")
+                return redirect(url_for("admin.admin_user_add"))
+
+            # 去重处理
+            username = data["username"]
+            cnt = AdminUser.query.filter_by(username=username).count()
+            if cnt >= 1:
+                flash("管理员已存在！", "err")
+                return redirect(url_for("admin.admin_user_add"))
+
+            # 数据库落地
+            from werkzeug.security import generate_password_hash
+            admin_user = AdminUser(
+                username=username,
+                role_id=data["role_id"],
+                pwd=generate_password_hash(data["pwd"])
+            )
+            db.session.add(admin_user)
+            db.session.commit()
+            flash("添加管理员成功", "ok")
+        except Exception as e:
+            print(e)
+            flash("服务器异常，添加管理员失败！", "err")
+        return redirect(url_for("admin.admin_user_add"))
+    return render_template("admin/admin_user_add.html", form=form)
 
 
 # 管理员列表
 @admin.route("/admin_user_list", methods=["GET", "POST"])
 @admin_login_req
 def admin_user_list():
-    return render_template("admin/admin_user_list.html")
+    page = int(request.args.get("page", 1))
+    size = int(request.args.get("size", 10))
+    page_data = db.session.query(AdminUser.id, AdminUser.username, Role.name, AdminUser.create_time)\
+        .join(Role, Role.id == AdminUser.role_id).paginate(page=page, per_page=size)
+    return render_template("admin/admin_user_list.html", page_data=page_data, col_num=4)
 
 
+# 编辑管理员
+@admin.route("/admin_user_edit", methods=["GET", "POST"])
+@admin_login_req
+def admin_user_edit():
+    id = int(request.args.get("id"))
+    admin_user = AdminUser.query.get_or_404(id)
+    form = AdminUserForm()
+
+    # 去掉确认密码校验
+    form.pwd.validators = []
+    form.re_pwd.validators = []
+
+    # 角色下拉回显
+    if request.method == "GET":
+        form.role_id.data = admin_user.role_id
+
+    if form.validate_on_submit():
+        try:
+            data = form.data
+            # 去重处理
+            username = data["username"]
+            cnt = AdminUser.query.filter_by(username=username).count()
+            if cnt >= 1 and admin_user.username != username:
+                flash("管理员已存在！", "err")
+                return redirect(url_for("admin.admin_user_edit", id=id))
+
+            # 更新数据
+            admin_user.username = username
+            admin_user.role_id = data["role_id"]
+            db.session.add(admin_user)
+            db.session.commit()
+            flash("编辑成功", "ok")
+        except Exception as e:
+            print(e)
+            flash("服务器异常，编辑失败！", "err")
+        return redirect(url_for("admin.admin_user_edit", id=id))
+    return render_template("admin/admin_user_edit.html", form=form, admin_user=admin_user)
 
 
-
+# 删除管理员
+@admin.route("/admin_user_del", methods=["GET", "POST"])
+@admin_login_req
+def admin_user_del():
+    try:
+        id = int(request.form.get("id"))
+        admin_user = AdminUser.query.get_or_404(id)
+        db.session.delete(admin_user)
+        db.session.commit()
+    except Exception as e:
+        print(e)
+        ResultEnum.FAIL.value.msg = "服务器异常，删除失败！"
+        return jsonify(ResultEnum.obj2json(ResultEnum.FAIL.value))
+    ResultEnum.SUCCESS.value.msg = "删除成功"
+    return jsonify(ResultEnum.obj2json(ResultEnum.SUCCESS.value))

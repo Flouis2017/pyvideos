@@ -1,4 +1,5 @@
 {% extends "admin/admin.html" %}
+{% import "ui/admin_page.html" as pg %}
 
 {% block content %}
 <section class="content-header">
@@ -30,38 +31,29 @@
                         <tbody>
                             <tr>
                                 <th>ID</th>
-                                <th>管理员名称</th>
-                                <th>管理员类型</th>
-                                <th>管理员角色</th>
+                                <th>用户名</th>
+                                <th>角色</th>
                                 <th>创建时间</th>
+								<th>操作</th>
                             </tr>
-                            <tr>
-                                <td>1</td>
-                                <td>admin</td>
-                                <td>普通管理员</td>
-                                <td>系统管理员</td>
-                                <td>2017-06-01</td>
-                            </tr>
-                            <tr>
-                                <td>2</td>
-                                <td>root_admin</td>
-                                <td>超级管理员</td>
-                                <td>系统管理员</td>
-                                <td>2017-06-01</td>
-                            </tr>
+
+							{% for v in page_data.items %}
+								<tr>
+									{% for i in range(col_num) %}
+										<td>{{ v[i] }}</td>
+									{% endfor %}
+									<td>
+										<a href="{{ url_for('admin.admin_user_edit', id=v[0]) }}" class="label label-success">编辑</a>
+										&nbsp;
+										<a class="label label-danger" onclick="del('{{v[0]}}')">删除</a>
+									</td>
+								</tr>
+                            {% endfor %}
                         </tbody>
                     </table>
                 </div>
                 <div class="box-footer clearfix">
-                    <ul class="pagination pagination-sm no-margin pull-right">
-                        <li><a href="#">首页</a></li>
-                        <li><a href="#">上一页</a></li>
-                        <li><a href="#">1</a></li>
-                        <li><a href="#">2</a></li>
-                        <li><a href="#">3</a></li>
-                        <li><a href="#">下一页</a></li>
-                        <li><a href="#">尾页</a></li>
-                    </ul>
+					{{ pg.page(page_data, "admin.admin_user_list") }}
                 </div>
             </div>
         </div>
@@ -76,5 +68,24 @@
         $('#t-11-2').addClass("active");
         $('#showcontent').height(490);
     });
+
+    function del(id) {
+        if(confirm("确定删除该角色吗？")){
+            $.ajax({
+                type: "POST",
+                url: "/admin/admin_user_del",
+                dataType: "json",
+                data: { id: id },
+                success: function (res) {
+                    alert(res.msg);
+                    location.reload();
+                },
+                error: function () {
+                    alert("网络出错！");
+                }
+            });
+        }
+    }
+
 </script>
 {% endblock %}
