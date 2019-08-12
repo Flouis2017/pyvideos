@@ -1,6 +1,6 @@
 # coding:utf8
 from . import admin
-from flask import render_template, redirect, url_for, flash, session, request, jsonify
+from flask import render_template, redirect, url_for, flash, session, request, jsonify, abort
 from app.admin.forms import *
 from app.models import *
 from functools import wraps
@@ -31,6 +31,23 @@ def admin_login_req(f):
         return f(*args, **kwargs)
 
     return decorator
+
+
+# 权限拦截器(权限控制装饰器)
+def admin_auth(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        query_res = db.session.query(Role.auth_set).join(AdminUser, Role.id == AdminUser.role_id) \
+            .filter(AdminUser.id == session["admin_user_id"]).first()
+        auths = list(map(lambda v: int(v), query_res[0].split(",")))
+        auth_list = Auth.query.all()
+        urls = [v.url for v in auth_list for val in auths if val == v.id]
+        rule = str(request.url_rule)
+        if rule not in urls:
+            abort(404)
+        return f(*args, **kwargs)
+
+    return decorated_function
 
 
 # 修改文件名称
@@ -137,6 +154,7 @@ def modify_pwd():
 # 添加标签
 @admin.route("/tag_add", methods=["GET", "POST"])
 @admin_login_req
+@admin_auth
 def tag_add():
     form = TagForm()
     if form.validate_on_submit():
@@ -159,6 +177,7 @@ def tag_add():
 # 编辑标签
 @admin.route("/tag_edit", methods=["GET", "POST"])
 @admin_login_req
+@admin_auth
 def tag_edit():
     id = int(request.args.get("id"))
     tag = Tag.query.get_or_404(id)
@@ -181,6 +200,7 @@ def tag_edit():
 # 标签列表（路由默认处理GET请求）
 @admin.route("/tag_list")
 @admin_login_req
+@admin_auth
 def tag_list():
     page = int(request.args.get("page", "1"))
     size = int(request.args.get("size", "10"))
@@ -208,6 +228,7 @@ def test_ajax():
 # 删除标签
 @admin.route("/tag_del", methods=["GET", "POST"])
 @admin_login_req
+@admin_auth
 def tag_del():
     try:
         tag_id = int(request.form.get("id"))
@@ -227,6 +248,7 @@ def tag_del():
 # 添加视频
 @admin.route("/video_add", methods=["GET", "POST"])
 @admin_login_req
+@admin_auth
 def video_add():
     form = VideoForm()
     if form.validate_on_submit():
@@ -280,6 +302,7 @@ def video_add():
 # 视频列表
 @admin.route("/video_list", methods=["GET", "POST"])
 @admin_login_req
+@admin_auth
 def video_list():
     page = int(request.args.get("page", "1"))
     size = int(request.args.get("size", "10"))
@@ -295,6 +318,7 @@ def video_list():
 # 删除视频
 @admin.route("/video_del", methods=["GET", "POST"])
 @admin_login_req
+@admin_auth
 def video_del():
     try:
         video_id = int(request.form.get("id"))
@@ -313,9 +337,10 @@ def video_del():
     return jsonify(ResultEnum.obj2json(ResultEnum.SUCCESS.value))
 
 
-# 添加视频
+# 编辑视频
 @admin.route("/video_edit", methods=["GET", "POST"])
 @admin_login_req
+@admin_auth
 def video_edit():
     id = int(request.args.get("id"))
     video = Video.query.get_or_404(id)
@@ -375,6 +400,7 @@ def video_edit():
 # 添加预告
 @admin.route("/preview_add", methods=["GET", "POST"])
 @admin_login_req
+@admin_auth
 def preview_add():
     form = PreviewForm()
     if form.validate_on_submit():
@@ -416,6 +442,7 @@ def preview_add():
 # 预告列表
 @admin.route("/preview_list", methods=["GET", "POST"])
 @admin_login_req
+@admin_auth
 def preview_list():
     page = int(request.args.get("page", "1"))
     size = int(request.args.get("size", "10"))
@@ -427,6 +454,7 @@ def preview_list():
 # 删除预告
 @admin.route("/preview_del", methods=["GET", "POST"])
 @admin_login_req
+@admin_auth
 def preview_del():
     try:
         preview_id = int(request.form.get("id"))
@@ -445,9 +473,10 @@ def preview_del():
     return jsonify(ResultEnum.obj2json(ResultEnum.SUCCESS.value))
 
 
-# 添加预告
+# 编辑预告
 @admin.route("/preview_edit", methods=["GET", "POST"])
 @admin_login_req
+@admin_auth
 def preview_edit():
     id = int(request.args.get("id"))
     preview = Preview.query.get_or_404(id)
@@ -491,6 +520,7 @@ def preview_edit():
 # 用户列表
 @admin.route("/user_list", methods=["GET", "POST"])
 @admin_login_req
+@admin_auth
 def user_list():
     page = int(request.args.get("page", "1"))
     per_page = int(request.args.get("size", "10"))
@@ -503,6 +533,7 @@ def user_list():
 # 用户查看
 @admin.route("/user_view", methods=["GET", "POST"])
 @admin_login_req
+@admin_auth
 def user_view():
     user_id = request.args.get("user_id")
     user = User.query.get_or_404(user_id)
@@ -512,6 +543,7 @@ def user_view():
 # 评论列表
 @admin.route("/comment_list", methods=["GET", "POST"])
 @admin_login_req
+@admin_auth
 def comment_list():
     page = int(request.args.get("page", 1))
     per_page = int(request.args.get("size", 10))
@@ -524,6 +556,7 @@ def comment_list():
 # 收藏列表
 @admin.route("/collection_list", methods=["GET", "POST"])
 @admin_login_req
+@admin_auth
 def collection_list():
     page = int(request.args.get("page", 1))
     per_page = int(request.args.get("per_page", 10))
@@ -536,6 +569,7 @@ def collection_list():
 # 后台操作记录列表
 @admin.route("/admin_op_log_list", methods=["GET", "POST"])
 @admin_login_req
+@admin_auth
 def admin_op_log_list():
     page = int(request.args.get("page", 1))
     size = int(request.args.get("size", 10))
@@ -548,6 +582,7 @@ def admin_op_log_list():
 # 后台登录记录列表
 @admin.route("/admin_login_log_list", methods=["GET", "POST"])
 @admin_login_req
+@admin_auth
 def admin_login_log_list():
     page = int(request.args.get("page", 1))
     size = int(request.args.get("size", 10))
@@ -560,6 +595,7 @@ def admin_login_log_list():
 # 客户端登录记录列表
 @admin.route("/login_log_list", methods=["GET", "POST"])
 @admin_login_req
+@admin_auth
 def login_log_list():
     page = int(request.args.get("page", 1))
     size = int(request.args.get("size", 10))
@@ -572,6 +608,7 @@ def login_log_list():
 # 添加权限
 @admin.route("/auth_add", methods=["GET", "POST"])
 @admin_login_req
+@admin_auth
 def auth_add():
     form = AuthForm()
     if form.validate_on_submit():
@@ -603,6 +640,7 @@ def auth_add():
 # 权限列表
 @admin.route("/auth_list", methods=["GET", "POST"])
 @admin_login_req
+@admin_auth
 def auth_list():
     page = int(request.args.get("page", 1))
     size = int(request.args.get("size", 10))
@@ -614,6 +652,7 @@ def auth_list():
 # 编辑权限
 @admin.route("/auth_edit", methods=["GET", "POST"])
 @admin_login_req
+@admin_auth
 def auth_edit():
     id = int(request.args.get("id"))
     auth = Auth.query.get_or_404(id)
@@ -645,6 +684,7 @@ def auth_edit():
 # 删除权限
 @admin.route("/auth_del", methods=["GET", "POST"])
 @admin_login_req
+@admin_auth
 def auth_del():
     try:
         auth_id = int(request.form.get("id"))
@@ -662,6 +702,7 @@ def auth_del():
 # 添加角色
 @admin.route("/role_add", methods=["GET", "POST"])
 @admin_login_req
+@admin_auth
 def role_add():
     form = RoleForm()
     if form.validate_on_submit():
@@ -692,6 +733,7 @@ def role_add():
 # 角色列表
 @admin.route("/role_list", methods=["GET", "POST"])
 @admin_login_req
+@admin_auth
 def role_list():
     page = int(request.args.get("page", 1))
     size = int(request.args.get("size", 10))
@@ -703,6 +745,7 @@ def role_list():
 # 编辑角色
 @admin.route("/role_edit", methods=["GET", "POST"])
 @admin_login_req
+@admin_auth
 def role_edit():
     id = int(request.args.get("id"))
     role = Role.query.get_or_404(id)
@@ -740,6 +783,7 @@ def role_edit():
 # 删除角色
 @admin.route("/role_del", methods=["GET", "POST"])
 @admin_login_req
+@admin_auth
 def role_del():
     try:
         role_id = int(request.form.get("id"))
@@ -763,6 +807,7 @@ def role_del():
 # 添加管理员
 @admin.route("/admin_user_add", methods=["GET", "POST"])
 @admin_login_req
+@admin_auth
 def admin_user_add():
     form = AdminUserForm()
     if form.validate_on_submit():
@@ -801,6 +846,7 @@ def admin_user_add():
 # 管理员列表
 @admin.route("/admin_user_list", methods=["GET", "POST"])
 @admin_login_req
+@admin_auth
 def admin_user_list():
     page = int(request.args.get("page", 1))
     size = int(request.args.get("size", 10))
@@ -812,6 +858,7 @@ def admin_user_list():
 # 编辑管理员
 @admin.route("/admin_user_edit", methods=["GET", "POST"])
 @admin_login_req
+@admin_auth
 def admin_user_edit():
     id = int(request.args.get("id"))
     admin_user = AdminUser.query.get_or_404(id)
@@ -851,6 +898,7 @@ def admin_user_edit():
 # 删除管理员
 @admin.route("/admin_user_del", methods=["GET", "POST"])
 @admin_login_req
+@admin_auth
 def admin_user_del():
     try:
         id = int(request.form.get("id"))
