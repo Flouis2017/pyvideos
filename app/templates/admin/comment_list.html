@@ -26,6 +26,25 @@
                     </div>
                 </div>
                 <div class="box-body box-comments">
+
+					<!-- 成功闪现 -->
+					{% for msg in get_flashed_messages(category_filter=["ok"]) %}
+					<div class="alert alert-success alert-dismissible">
+						<button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+						<h4><i class="icon fa fa-check"></i> 消息</h4>
+						{{ msg }}
+					</div>
+					{% endfor %}
+
+					<!-- 失败闪现 -->
+					{% for msg in get_flashed_messages(category_filter=["err"]) %}
+					<div class="alert alert-danger alert-dismissible">
+						<button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+						<h4><i class="icon fa fa-ban"></i> 消息</h4>
+						{{ msg }}
+					</div>
+					{% endfor %}
+
 					{% for v in page_date.items %}
 						<div class="box-comment">
 							<img class="img-circle img-sm" src="{{ url_for('static', filename='upload/avatar/' + v[1]) }}" alt="User Image">
@@ -38,7 +57,7 @@
 									</span>
 								</span>
 								关于视频<a style="cursor: pointer;">{{ v[4] }}</a>的评论：{{ v[5] }}
-								<br><a class="label label-danger pull-right" onclick="del({{ v[0] }})">删除</a>
+								<br><a href="{{ url_for('admin.comment_del', id=v[0]) }}" class="label label-danger pull-right">删除</a>
 							</div>
 						</div>
 					{% endfor %}
@@ -58,9 +77,5 @@
         $('#t-6').addClass("active");
         $('#t-6-1').addClass("active");
     });
-
-    function del(comment_id) {
-		alert("删除评论(id:" + comment_id + ")");
-	}
 </script>
 {% endblock %}

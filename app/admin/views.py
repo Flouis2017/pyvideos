@@ -16,10 +16,13 @@ import datetime
 # 上下文处理器 —— 封装全局变量
 @admin.context_processor
 def tpl_extra():
-    data = dict(
-        online_date = datetime.datetime.now().strftime("%Y-%m-%d")
+    username = "admin"
+    if "username" in session:
+        username = session["username"]
+    return dict(
+        online_date=str(datetime.datetime.now().strftime("%Y-%m-%d")),
+        username=username
     )
-    return data
 
 
 # 登录拦截器(注意装饰器的写法)
@@ -188,11 +191,12 @@ def tag_edit():
         if tag.name != data["name"] and cnt >= 1:
             flash("已存在！", "err")
             return redirect(url_for("admin.tag_edit", id=id))
+        origin_tag_name = tag.name
         tag.name = data["name"]
         db.session.add(tag)
         db.session.commit()
         flash("操作成功", "ok")
-        record_admin_op_log("编辑标签(id: " + str(id) + ")")
+        record_admin_op_log("编辑标签 " + origin_tag_name)
         return redirect(url_for("admin.tag_edit", id=id))
     return render_template("admin/tag_edit.html", form=form, tag=tag)
 
@@ -232,6 +236,10 @@ def test_ajax():
 def tag_del():
     try:
         tag_id = int(request.form.get("id"))
+        # 判断标签之下是否有视频，有的话不允许删除
+        if Video.query.filter_by(tag_id=tag_id).count() > 0:
+            ResultEnum.FAIL.value.msg = "删除该标签请先解绑相关视频！"
+            return jsonify(ResultEnum.obj2json(ResultEnum.FAIL.value))
         tag = Tag.query.filter_by(id=tag_id).first_or_404()
         tag_name = tag.name
         db.session.delete(tag)
@@ -551,6 +559,23 @@ def comment_list():
         .join(User, Comment.user_id == User.id).join(Video, Comment.video_id == Video.id).filter() \
         .order_by(Comment.id.desc()).paginate(page=page, per_page=per_page)
     return render_template("admin/comment_list.html", page_date=page_data)
+
+
+# 评论删除
+@admin.route("/comment_del", methods=["GET", "POST"])
+@admin_login_req
+@admin_auth
+def comment_del():
+    try:
+        id = int(request.args.get("id"))
+        comment = Comment.query.get_or_404(id)
+        db.session.delete(comment)
+        db.session.commit()
+        flash("操作成功", "ok")
+    except Exception as e:
+        print(e)
+        flash("操作失败", "err")
+    return redirect(url_for("admin.comment_list", page=1))
 
 
 # 收藏列表
