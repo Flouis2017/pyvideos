@@ -11,6 +11,7 @@ from werkzeug.utils import secure_filename
 import os
 import uuid
 import datetime
+from sqlalchemy import or_, text
 
 
 # 上下文处理器 —— 封装全局变量
@@ -669,8 +670,10 @@ def auth_add():
 def auth_list():
     page = int(request.args.get("page", 1))
     size = int(request.args.get("size", 10))
-    page_data = db.session.query(Auth.id, Auth.name, Auth.url, Auth.create_time)\
-        .join().filter().order_by().paginate(page=page, per_page=size)
+    search_text = request.args.get("search_text", "")
+    page_data = db.session.query(Auth.id, Auth.name, Auth.url, Auth.create_time).join()\
+        .filter(or_(Auth.name.like("%" + search_text + "%"), Auth.url.like("%" + search_text + "%")))\
+        .order_by().paginate(page=page, per_page=size)
     return render_template("admin/auth_list.html", page_data=page_data, col_num=4)
 
 
