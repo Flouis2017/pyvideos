@@ -77,7 +77,8 @@
                 data: { id: id },
                 success: function (res) {
                     alert(res.msg);
-                    location.reload();
+                    {#location.reload();#}
+					location.href = "/admin/role_list?page=1";
                 },
                 error: function () {
                     alert("网络出错或无操作权限！");

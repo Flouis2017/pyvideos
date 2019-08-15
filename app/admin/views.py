@@ -549,6 +549,25 @@ def user_view():
     return render_template("admin/user_view.html", user=user)
 
 
+# 用户删除
+@admin.route("/user_del", methods=["GET", "POST"])
+@admin_login_req
+@admin_auth
+def user_del():
+    try:
+        user_id = int(request.form.get("user_id"))
+        # user = User.query.get_or_404(user_id)
+        user = User.query.filter_by(id=user_id).first_or_404()
+        db.session.delete(user)
+        db.session.commit()
+    except Exception as e:
+        print(e)
+        ResultEnum.FAIL.value.msg = "服务器异常，删除失败！"
+        return jsonify(ResultEnum.obj2json(ResultEnum.FAIL.value))
+    ResultEnum.SUCCESS.value.msg = "删除成功"
+    return jsonify(ResultEnum.obj2json(ResultEnum.SUCCESS.value))
+
+
 # 评论列表
 @admin.route("/comment_list", methods=["GET", "POST"])
 @admin_login_req

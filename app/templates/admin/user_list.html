@@ -52,7 +52,7 @@
                                 <td>
                                     <a class="label label-success" href="{{ url_for('admin.user_view', user_id = v[0]) }}">查看</a>
                                     &nbsp;
-                                    <a class="label label-danger" onclick="del({{ v[0] }})">删除</a>
+                                    <a class="label label-danger" onclick="del('{{ v[0] }}')">删除</a>
                                 </td>
                             </tr>
                             {% endfor %}
@@ -76,7 +76,21 @@
     });
 
     function del(user_id){
-    	alert("删除用户(id:" + user_id + ")");
+    	if(confirm("确定删除该用户吗？")){
+            $.ajax({
+                type: "POST",
+                url: "/admin/user_del",
+                dataType: "json",
+                data: { user_id: user_id },
+                success: function (res) {
+                    alert(res.msg);
+					location.href = "/admin/user_list?page=1";
+                },
+                error: function () {
+                    alert("网络出错或无操作权限！");
+                }
+            });
+        }
 	}
 </script>
 {% endblock %}

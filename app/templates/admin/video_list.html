@@ -74,7 +74,7 @@
 
     // 删除
     function del(id) {
-        if(confirm("确定删除该记录吗？")){
+        if(confirm("确定删除该视频吗？")){
             $.ajax({
                 type: "POST",
                 url: "/admin/video_del",
@@ -82,7 +82,8 @@
                 data: { id: id },
                 success: function (res) {
 					alert(res.msg);
-                    location.reload();
+                    {#location.reload();#}
+					location.href = "/admin/video_list?page=1";
                 },
                 error: function () {
                     alert("网络出错或无操作权限！");
