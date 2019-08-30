@@ -8,38 +8,70 @@
             <h3 class="panel-title"><span class="glyphicon glyphicon-map-marker"></span>&nbsp;会员中心</h3>
         </div>
         <div class="panel-body">
-            <form role="form">
+
+            <!-- 结果闪现 -->
+            {% for msg in get_flashed_messages(category_filter=["err"]) %}
+                <p style="color: red">{{ msg }}</p>
+            {% endfor %}
+            {% for msg in get_flashed_messages(category_filter=["ok"]) %}
+                <p style="color: green">{{ msg }}</p>
+            {% endfor %}
+
+            <form role="form" method="post" enctype="multipart/form-data" action="{{ url_for('home.user') }}">
                 <fieldset>
                     <div class="form-group">
-                        <label for="input_name"><span class="glyphicon glyphicon-user"></span>&nbsp;用户名</label>
-                        <input id="input_name" class="form-control" name="username" type="text" autofocus value="jinlong">
+                        <label for="input_name"><span class="glyphicon glyphicon-user"></span>&nbsp;{{ form.username.label }}</label>
+                        <!--<input id="input_name" class="form-control" name="username" type="text" autofocus value="jinlong">-->
+                        {{ form.username(required=False, value=cur_user.username) }}
                     </div>
-                    <div class="col-md-12" id="error_name"></div>
+                    {% for err in form.username.errors %}
+                        <div class="col-md-12">
+                            <span style="color: red;">{{ err }}</span>
+                        </div>
+                    {% endfor %}
+
                     <div class="form-group">
-                        <label for="input_email"><span class="glyphicon glyphicon-envelope"></span>&nbsp;邮箱</label>
-                        <input id="input_email" class="form-control" name="email" type="email" autofocus value="1780316635@qq.com">
+                        <label for="input_email"><span class="glyphicon glyphicon-envelope"></span>&nbsp;{{ form.email.label }}</label>
+                        <!--<input id="input_email" class="form-control" name="email" type="email" autofocus value="1780316635@qq.com">-->
+                        {{ form.email(required=False, value=cur_user.email) }}
                     </div>
-                    <div class="col-md-12" id="error_email"></div>
+                    {% for err in form.email.errors %}
+                        <div class="col-md-12">
+                            <span style="color: red;">{{ err }}</span>
+                        </div>
+                    {% endfor %}
+
                     <div class="form-group">
-                        <label for="input_phone"><span class="glyphicon glyphicon-phone"></span>&nbsp;手机</label>
-                        <input id="input_phone" class="form-control" name="phone" type="text" autofocus value="13700632835">
+                        <label for="input_phone"><span class="glyphicon glyphicon-phone"></span>&nbsp;{{ form.phone.label }}</label>
+                        <!--<input id="input_phone" class="form-control" name="phone" type="text" autofocus value="13700632835">-->
+                        {{ form.phone(required=False, value=cur_user.phone) }}
                     </div>
-                    <div class="col-md-12" id="error_phone"></div>
+                    {% for err in form.phone.errors %}
+                        <div class="col-md-12">
+                            <span style="color: red;">{{ err }}</span>
+                        </div>
+                    {% endfor %}
+
                     <div class="form-group">
-                        <label for="input_face"><span class="glyphicon glyphicon-picture"></span>&nbsp;头像</label>
-                        <img src="holder.js/100x100" class="img-responsive img-rounded">
+                        <label for="input_avatar"><span class="glyphicon glyphicon-picture"></span>&nbsp;{{ form.avatar.label }}</label>
+                        <!--<img src="holder.js/100x100" class="img-responsive img-rounded">
                         <a class="btn btn-primary" style="margin-top:6px;">
                             <span class="glyphicon glyphicon-open"></span>&nbsp;上传头像
                         </a>
-                        <input id="input_face" class="form-control" name="avatar" type="hidden" autofocus>
+                        <input id="input_avatar" class="form-control" name="avatar" type="hidden" autofocus>-->
+                        <img src="{{ url_for('static', filename='upload/avatar/'+cur_user.avatar) }}" style="margin-top:5px; height: 200px;" class="img-responsive" alt="">
+                        {{ form.avatar(required=False) }}
                     </div>
-                    <div class="col-md-12" id="error_avatar"></div>
+
                     <div class="form-group">
-                        <label for="input_info"><span class="glyphicon glyphicon-edit"></span>&nbsp;简介</label>
-                        <textarea class="form-control" rows="10" id="input_info">君子爱财，取之有道。</textarea>
+                        <label for="input_info"><span class="glyphicon glyphicon-edit"></span>&nbsp;{{ form.info.label }}</label>
+                        <!--<textarea class="form-control" rows="10" id="input_info">君子爱财，取之有道。</textarea>-->
+                        {{ form.info(required=False) }}
                     </div>
-                    <div class="col-md-12" id="error_info"></div>
-                    <a href="user.html" class="btn btn-success"><span class="glyphicon glyphicon-saved"></span>&nbsp;保存修改</a>
+
+                    <!--<a href="user.html" class="btn btn-success"><span class="glyphicon glyphicon-saved"></span>&nbsp;保存修改</a>-->
+                    {{ form.csrf_token }}
+                    {{ form.submit }}
                 </fieldset>
             </form>
         </div>
