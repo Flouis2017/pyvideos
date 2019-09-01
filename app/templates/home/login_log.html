@@ -1,4 +1,5 @@
 {% extends "home/home.html" %}
+{% import "ui/home_page.html" as pg %}
 
 {% block content %}
 {% include "home/menu.html" %}
@@ -13,40 +14,18 @@
                     <td style="width:10%">序号</td>
                     <td style="width:30%">登录时间</td>
                     <td style="width:30%">登录IP</td>
-                    <td style="width:30%">登录地址</td>
                 </tr>
-                <tr>
-                    <td>1</td>
-                    <td>2019-04-06 23:28:00</td>
-                    <td>192.168.1.101</td>
-                    <td>福建厦门</td>
-                </tr>
-                <tr>
-                    <td>1</td>
-                    <td>2019-04-06 23:28:00</td>
-                    <td>192.168.1.101</td>
-                    <td>福建厦门</td>
-                </tr>
-                <tr>
-                    <td>1</td>
-                    <td>2019-04-06 23:28:00</td>
-                    <td>192.168.1.101</td>
-                    <td>福建厦门</td>
-                </tr>
-                <tr>
-                    <td>1</td>
-                    <td>2019-04-06 23:28:00</td>
-                    <td>192.168.1.101</td>
-                    <td>福建厦门</td>
-                </tr>
-                <tr>
-                    <td>1</td>
-                    <td>2019-04-06 23:28:00</td>
-                    <td>192.168.1.101</td>
-                    <td>福建厦门</td>
-                </tr>
-
+				{% for v in page_data.items %}
+					<tr>
+						<td>{{ v.id }}</td>
+						<td>{{ v.create_time }}</td>
+						<td>{{ v.ip }}</td>
+					</tr>
+				{% endfor %}
             </table>
+			<div class="col-md-12 text-center">
+                {{ pg.page(page_data, "home.login_log") }}
+            </div>
         </div>
     </div>
 </div>

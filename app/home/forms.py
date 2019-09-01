@@ -164,3 +164,31 @@ class UserDetailForm(FlaskForm):
 		}
 	)
 
+
+class PwdForm(FlaskForm):
+	newpwd = PasswordField(
+		label="新密码",
+		validators=[
+			DataRequired("请输入新密码")
+		],
+		render_kw={
+			"class": "form-control"
+		}
+	)
+	re_pwd = PasswordField(
+		label="确认密码",
+		validators=[
+			DataRequired("请确认密码"),
+			EqualTo("newpwd", message="两次密码不一致！")
+		],
+		render_kw={
+			"class": "form-control"
+		}
+	)
+	submit = SubmitField(
+		"修改密码",
+		render_kw={
+			"class": "btn btn-success"
+		}
+	)
+

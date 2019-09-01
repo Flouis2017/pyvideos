@@ -61,6 +61,9 @@ def login():
         account = data["account"]
         pwd = data["pwd"]
         user = User.query.filter(or_(User.username == account, User.email == account, User.phone == account)).first()
+        if user is None:
+            flash("该账号不存在！", "err")
+            return redirect(url_for("home.login"))
         if not user.check_pwd(pwd):
             flash("密码出错！", "err")
             return redirect(url_for("home.login"))
@@ -165,7 +168,25 @@ def user():
 @home.route("/pwd", methods=["GET", "POST"])
 @login_req
 def pwd():
-    return render_template("home/pwd.html")
+    form = PwdForm()
+    if form.validate_on_submit():
+        try:
+            data = form.data
+            # 获取当前会员用户
+            xx = User.query.filter(User.id == session["user_id"])
+            print(type(xx))
+            cur_user = User.query.filter(User.id == session["user_id"]).first()
+            # 对新密码加密
+            cur_user.pwd = generate_password_hash(data["newpwd"])
+            # 数据库落地
+            db.session.add(cur_user)
+            db.session.commit()
+            flash("操作成功", "ok")
+        except Exception as e:
+            print(e)
+            flash("服务器异常，操作失败！", "err")
+        return redirect(url_for("home.pwd"))
+    return render_template("home/pwd.html", form=form)
 
 
 @home.route("/comment", methods=["GET", "POST"])
@@ -177,7 +198,13 @@ def comment():
 @home.route("/login_log", methods=["GET", "POST"])
 @login_req
 def login_log():
-    return render_template("home/login_log.html")
+    page = int(request.args.get("page", 1))
+    size = int(request.args.get("size", 10))
+    # 分页查询
+    page_data = LoginLog.query.filter(LoginLog.user_id == session["user_id"])\
+                        .order_by(LoginLog.id.desc())\
+                        .paginate(page=page, per_page=size)
+    return render_template("home/login_log.html", page_data=page_data)
 
 
 @home.route("/collection", methods=["GET", "POST"])
