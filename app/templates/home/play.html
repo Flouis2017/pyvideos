@@ -1,4 +1,5 @@
 {% extends "home/home.html" %}
+{% import "ui/comment_page.html" as pg %}
 
 {% block import_in_head %}
 <!--播放页面-->
@@ -7,7 +8,7 @@
 <script type="text/javascript" src="../../static/ueditor/ueditor.all.js"></script>
 <script type="text/javascript" src="../../static/ueditor/lang/zh-cn/zh-cn.js"></script>
 <script>
-    SyntaxHighlighter.all();
+    {#SyntaxHighlighter.all();#}
 </script>
 {% endblock %}
 
@@ -29,25 +30,25 @@
                         <td style="width:30%;color:#ccc;font-weight:bold;font-style:italic;">
                             <span class="glyphicon glyphicon-film"></span>&nbsp;片名
                         </td>
-                        <td>环太平洋</td>
+                        <td>{{ video.title }}</td>
                     </tr>
                     <tr>
                         <td style="color:#ccc;font-weight:bold;font-style:italic;">
                             <span class="glyphicon glyphicon-tag"></span>&nbsp;标签
                         </td>
-                        <td>科幻</td>
+                        <td>{{ tag.name }}</td>
                     </tr>
                     <tr>
                         <td style="color:#ccc;font-weight:bold;font-style:italic;">
                             <span class="glyphicon glyphicon-time"></span>&nbsp;时长
                         </td>
-                        <td>05:04</td>
+                        <td>{{ video.length }}</td>
                     </tr>
                     <tr>
                         <td style="color:#ccc;font-weight:bold;font-style:italic;">
                             <span class="glyphicon glyphicon-map-marker"></span>&nbsp;地区
                         </td>
-                        <td>美国</td>
+                        <td>{{ video.area }}</td>
                     </tr>
                     <tr>
                         <td style="color:#ccc;font-weight:bold;font-style:italic;">
@@ -55,11 +56,12 @@
                         </td>
                         <td>
                             <div>
-                                <span class="glyphicon glyphicon-star" style="color:#FFD119"></span>
-                                <span class="glyphicon glyphicon-star" style="color:#FFD119"></span>
-                                <span class="glyphicon glyphicon-star" style="color:#FFD119"></span>
-                                <span class="glyphicon glyphicon-star-empty" style="color:#FFD119"></span>
-                                <span class="glyphicon glyphicon-star-empty" style="color:#FFD119"></span>
+                                {% for i in range(0, video.star) %}
+									<span class="glyphicon glyphicon-star" style="color:#FFD119"></span>
+								{% endfor %}
+								{% for i in range(0, 5 - video.star) %}
+									<span class="glyphicon glyphicon-star-empty" style="color:#FFD119"></span>
+								{% endfor %}
                             </div>
                         </td>
                     </tr>
@@ -67,115 +69,119 @@
                         <td style="color:#ccc;font-weight:bold;font-style:italic;">
                             <span class="glyphicon glyphicon-calendar"></span>&nbsp;发布时间
                         </td>
-                        <td>2013年7月12日</td>
+                        <td>{{ video.release_time }}</td>
                     </tr>
                     <tr>
                         <td style="color:#ccc;font-weight:bold;font-style:italic;">
                             <span class="glyphicon glyphicon-play"></span>&nbsp;播放数量
                         </td>
-                        <td>1000</td>
+                        <td>{{ video.play_amount }}</td>
                     </tr>
                     <tr>
                         <td style="color:#ccc;font-weight:bold;font-style:italic;">
                             <span class="glyphicon glyphicon-comment"></span>&nbsp;评论数量
                         </td>
-                        <td>1000</td>
+                        <td>{{ video.comment_amount }}</td>
                     </tr>
                     <tr>
                         <td style="color:#ccc;font-weight:bold;font-style:italic;">
                             <span class="glyphicon glyphicon-picture"></span>&nbsp;内容描述
                         </td>
                         <td>
-                            该片主要讲述了人类为了抵抗怪兽的进攻，研制出了高大的机器战士与来犯怪兽进行对抗的故事。
+                            {{ video.info }}
                         </td>
                     </tr>
                 </table>
             </div>
         </div>
     </div>
+
     <div class="col-md-12" style="margin-top:6px;">
         <div class="panel panel-danger">
             <div class="panel-heading">
                 <h3 class="panel-title"><span class="glyphicon glyphicon-comment"></span>&nbsp;评论</h3>
             </div>
             <div class="panel-body">
-                <div class="alert alert-danger alert-dismissible" role="alert">
-                    <button type="button" class="close" data-dismiss="alert">
-                        <span aria-hidden="true">×</span>
-                        <span class="sr-only">Close</span>
-                    </button>
-                    <strong>请先<a href="login.html" target="_blank" class="text-info">登录</a>，才可参与评论！</strong>
-                </div>
-                <ol class="breadcrumb" style="margin-top:6px;">
-                    <li>全部评论(5)</li>
-                </ol>
-                <form role="form" style="margin-bottom:6px;">
-                    <div class="form-group">
-                        <div>
-                            <label for="input_content">内容</label>
-                            <textarea id="input_content"></textarea>
-                        </div>
-                        <div class="col-xs-12" id="error_content"></div>
-                    </div>
-                    <a class="btn btn-success" id="btn-sub"><span class="glyphicon glyphicon-edit"></span>&nbsp;提交评论</a>
-                    &nbsp;
-                    <a class="btn btn-danger" id="btn-col"><span class="glyphicon glyphicon-heart"></span>&nbsp;收藏电影</a>
-                </form>
+
+                {% if "username" not in session %}
+					<div class="alert alert-danger alert-dismissible" role="alert">
+						<button type="button" class="close" data-dismiss="alert">
+							<span aria-hidden="true">×</span>
+							<span class="sr-only">Close</span>
+						</button>
+						<strong>请先<a href="{{ url_for('home.login') }}" class="text-info">登录</a>，才可参与评论！</strong>
+					</div>
+				{% endif %}
+
+                {#<ol class="breadcrumb" style="margin-top:6px;">
+                    <li>全部评论({{ video.comment_amount }})</li>
+                </ol>#}
+
+				{% if "username" in session %}
+					<!-- 结果闪现 -->
+					{% for msg in get_flashed_messages(category_filter=["err"]) %}
+						<p style="color: red">{{ msg }}</p>
+					{% endfor %}
+					{% for msg in get_flashed_messages(category_filter=["ok"]) %}
+						<p style="color: green">{{ msg }}</p>
+					{% endfor %}
+					<form role="form" style="margin-bottom:6px;" method="post">
+						<div class="form-group">
+							<div>
+								<label for="input_content">{{ form.content.label }}</label>
+								{#<textarea id="input_content"></textarea>#}
+								{{ form.content(required=False) }}
+							</div>
+							{% for err in form.content.errors %}
+								<div class="col-md-12">
+									<span style="color: red;">{{ err }}</span>
+								</div>
+							{% endfor %}
+						</div>
+						{#<a class="btn btn-success" id="btn-sub"><span class="glyphicon glyphicon-edit"></span>&nbsp;提交评论</a>#}
+						{{ form.csrf_token }}
+						{{ form.submit }}
+						&nbsp;
+						<a class="btn btn-danger" id="btn-col"><span class="glyphicon glyphicon-heart"></span>&nbsp;收藏电影</a>
+					</form>
+				{% endif %}
+
+				{# 评论列表 #}
                 <ul class="commentList">
-                    {% for i in range(0, 5) %}
-                    <li class="item cl">
-                        <a href="user.html">
-                            <i class="avatar size-L radius">
-                                <img alt="50x50" src="holder.js/50x50" class="img-circle" style="border:1px solid #abcdef;">
-                            </i>
-                        </a>
-                        <div class="comment-main">
-                            <header class="comment-header">
-                                <div class="comment-meta">
-                                    <a class="comment-author" href="user.html">xiaoli</a>
-                                    评论于
-                                    <time title="2019-04-07 13:45:51" datetime="2019-04-07 13:45:51">
-                                        2019-04-07 13:45:51
-                                    </time>
-                                </div>
-                            </header>
-                            <div class="comment-body">
-                                <p>这电影真好看！</p>
-                            </div>
-                        </div>
-                    </li>
+                    {% for v in page_data.items %}
+						<li class="item cl">
+							<a>
+								<i class="avatar size-L radius">
+									<img alt="50x50" src="{{ url_for('static', filename='upload/avatar/' + v[0]) }}" class="img-circle"
+										 style="border:1px solid #abcdef; width: 50px; height: 50px;">
+								</i>
+							</a>
+							<div class="comment-main">
+								<header class="comment-header">
+									<div class="comment-meta">
+										<a class="comment-author" href="user.html">{{ v[1] }}</a>
+										评论于
+										<time title="{{ v[2] }}" datetime="{{ v[2] }}">
+											{{ v[2] }}
+										</time>
+									</div>
+								</header>
+								<div class="comment-body">
+									<p>{{ v[3] | safe }}</p>
+								</div>
+							</div>
+						</li>
                     {% endfor %}
                 </ul>
+
                 <div class="col-md-12 text-center">
-                    <nav aria-label="Page navigation">
-                        <ul class="pagination">
-                            <li>
-                                <a href="#" aria-label="First">
-                                    <span aria-hidden="true">首页</span>
-                                </a>
-                            </li>
-                            <li>
-                                <a href="#" aria-label="Previous">
-                                    <span aria-hidden="true">上一页</span>
-                                </a>
-                            </li>
-                            <li><a href="#">1&nbsp;/&nbsp;10</a></li>
-                            <li>
-                                <a href="#" aria-label="Next">
-                                    <span aria-hidden="true">下一页</span>
-                                </a>
-                            </li>
-                            <li>
-                                <a href="#" aria-label="Last">
-                                    <span aria-hidden="true">尾页</span>
-                                </a>
-                            </li>
-                        </ul>
-                    </nav>
+                    {{ pg.page(page_data, "home.play", video.id) }}
                 </div>
+
             </div>
         </div>
     </div>
+
 </div>
 {% endblock %}
 
@@ -195,8 +201,8 @@
     jwplayer("moviecontainer").setup({
         flashplayer: "../../static/jwplayer/jwplayer.flash.swf",
         playlist: [{
-            file: "../../static/video/htpy.mp4",
-            title: "环太平洋"
+            file: "{{ url_for('static', filename='upload/' + video.url) }}",
+            title: "{{ video.title }}"
         }],
         modes: [{
             type: "html5"

@@ -51,9 +51,9 @@
         <div class="navbar-collapse collapse">
             <form class="navbar-form navbar-left" role="search" style="margin-top:18px;">
                 <div class="form-group input-group">
-                    <input type="text" class="form-control">
+                    <input type="text" class="form-control" id="search_input">
                     <span class="input-group-btn">
-                        <a class="btn btn-default" href="{{ url_for('home.search') }}">
+                        <a class="btn btn-default" id="search_btn">
                             <span class="glyphicon glyphicon-search"></span>搜索
                         </a>
                     </span>
@@ -114,6 +114,12 @@
         $("img.lazy").lazyload({
             effect: "fadeIn"
         });
+
+        $('#search_btn').on("click", function () {
+			var key_word = $.trim($('#search_input').val());
+			location.href = "{{ url_for('home.search') }}?key_word=" + key_word;
+		});
+
     });
 </script>
 {% block js %}

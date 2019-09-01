@@ -156,7 +156,6 @@ class UserDetailForm(FlaskForm):
 			"rows": 10
 		}
 	)
-
 	submit = SubmitField(
 		"保存",
 		render_kw={
@@ -192,3 +191,21 @@ class PwdForm(FlaskForm):
 		}
 	)
 
+
+class CommentForm(FlaskForm):
+	content = TextAreaField(
+		label="内容",
+		description="内容",
+		validators=[
+			DataRequired("请输入评论内容")
+		],
+		render_kw={
+			"id": "input_content"
+		}
+	)
+	submit = SubmitField(
+		"提交评论",
+		render_kw={
+			"class": "btn btn-success"
+		}
+	)
