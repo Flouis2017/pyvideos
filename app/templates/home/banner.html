@@ -21,7 +21,14 @@
                 <span class="banner_btn_arrow"><i></i></span>
             </a>
             <ul>
-                <li id="imgCard0">
+				{% for v in data %}
+					<li id="imgCard{{ v.id - 1 }}">
+						<a href=""><span style="opacity:0;"></span></a>
+						<img src="{{ url_for('static', filename='upload/'+v.logo) }}" alt="">
+						<p style="bottom:0">{{ v.title }}</p>
+                	</li>
+				{% endfor %}
+                {#<li id="imgCard0">
                     <a href=""><span style="opacity:0;"></span></a>
                     <img src="../../static/index-banner/main_banner/big0020150102211033.jpg" alt="">
                     <p style="bottom:0">周杰伦粉丝版MV</p>
@@ -45,7 +52,7 @@
                     <a href=""><span style="opacity:0.4;"></span></a>
                     <img src="../../static/index-banner/main_banner/big0720150102210934.jpg" alt="">
                     <p>MV精选：《武媚》女神团美艳大比拼</p>
-                </li>
+                </li>#}
             </ul>
 
             <!-- 倒影图层 -->

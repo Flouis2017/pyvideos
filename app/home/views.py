@@ -2,7 +2,7 @@
 from . import home
 from flask import render_template, redirect, url_for, flash, request, session
 from app.home.forms import *
-from app.models import User, LoginLog
+from app.models import User, LoginLog, Preview
 from werkzeug.security import generate_password_hash
 from werkzeug.utils import secure_filename
 from app import db, app
@@ -42,9 +42,11 @@ def index():
     return render_template("home/index.html")
 
 
+# (预告)轮播图
 @home.route("/banner", methods=["GET", "POST"])
 def banner():
-    return render_template("home/banner.html")
+    data = Preview.query.all()
+    return render_template("home/banner.html", data=data)
 
 
 @home.route("/search", methods=["GET", "POST"])
@@ -172,9 +174,9 @@ def pwd():
     if form.validate_on_submit():
         try:
             data = form.data
+            # xx = User.query.filter(User.id == session["user_id"])
+            # print(type(xx))     # BaseQuery
             # 获取当前会员用户
-            xx = User.query.filter(User.id == session["user_id"])
-            print(type(xx))
             cur_user = User.query.filter(User.id == session["user_id"]).first()
             # 对新密码加密
             cur_user.pwd = generate_password_hash(data["newpwd"])
