@@ -5,7 +5,7 @@ from app.admin.forms import *
 from app.models import *
 from functools import wraps
 from app import db, app
-from app.admin.result import ResultEnum
+from app.common.result import ResultEnum
 from app.common.util import SqlUtil
 from werkzeug.utils import secure_filename
 import os

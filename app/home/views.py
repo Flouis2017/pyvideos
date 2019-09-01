@@ -1,8 +1,9 @@
 # coding:utf8
 from . import home
-from flask import render_template, redirect, url_for, flash, request, session
+from flask import render_template, redirect, url_for, flash, request, session, jsonify
 from app.home.forms import *
-from app.models import User, LoginLog, Preview, Tag, Video, Comment
+from app.common.result import ResultEnum
+from app.models import User, LoginLog, Preview, Tag, Video, Comment, Collection
 from werkzeug.security import generate_password_hash
 from werkzeug.utils import secure_filename
 from app import db, app
@@ -264,7 +265,36 @@ def login_log():
     return render_template("home/login_log.html", page_data=page_data)
 
 
-# 会员用户收藏
+# 视频收藏
+@home.route("/collection_add", methods=["GET", "POST"])
+@login_req
+def collection_add():
+    try:
+        vid = int(request.form.get("vid"))
+        user_id = session["user_id"]
+
+        # 查询是否收藏过了
+        cnt = Collection.query.filter(Collection.video_id == vid, Collection.user_id == user_id).count()
+        if cnt >= 1:
+            ResultEnum.SUCCESS.value.msg = "已收藏！"
+            return jsonify(ResultEnum.obj2json(ResultEnum.SUCCESS.value))
+
+        # 收藏(数据库落地)
+        new_col = Collection(
+            video_id=vid,
+            user_id=user_id
+        )
+        db.session.add(new_col)
+        db.session.commit()
+    except Exception as e:
+        print(e)
+        ResultEnum.FAIL.value.msg = "服务器异常，收藏失败！"
+        return jsonify(ResultEnum.obj2json(ResultEnum.FAIL.value))
+    ResultEnum.SUCCESS.value.msg = "收藏成功"
+    return jsonify(ResultEnum.obj2json(ResultEnum.SUCCESS.value))
+
+
+# 视频收藏列表
 @home.route("/collection", methods=["GET", "POST"])
 @login_req
 def collection():

@@ -9,6 +9,26 @@
 <script type="text/javascript" src="../../static/ueditor/lang/zh-cn/zh-cn.js"></script>
 <script>
     {#SyntaxHighlighter.all();#}
+	function collect(vid) {
+		$.ajax({
+			url: "/collection_add",
+			type: "POST",
+			dataType: "json",
+			data: {vid: vid},
+			success: function (res) {
+				$('#err_col_msg').empty();
+				$('#ok_col_msg').empty();
+				if (res.code == 200){
+					$('#ok_col_msg').text(res.msg);
+				} else {
+					$('#err_col_msg').text(res.msg);
+				}
+			},
+			error: function () {
+				alert("网络出错，请稍后重试！");
+			}
+		});
+	}
 </script>
 {% endblock %}
 
@@ -142,8 +162,13 @@
 						{{ form.csrf_token }}
 						{{ form.submit }}
 						&nbsp;
-						<a class="btn btn-danger" id="btn-col"><span class="glyphicon glyphicon-heart"></span>&nbsp;收藏电影</a>
+						<a class="btn btn-danger" id="btn-col" onclick="collect({{ video.id }})"><span class="glyphicon glyphicon-heart"></span>&nbsp;收藏电影</a>
 					</form>
+					<div class="col-md-12">
+						<span style="color: green;" id="ok_col_msg"></span>
+						<span style="color: red;" id="err_col_msg"></span>
+					</div>
+					<div class="clearfix"></div>
 				{% endif %}
 
 				{# 评论列表 #}
