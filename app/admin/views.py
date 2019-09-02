@@ -224,10 +224,14 @@ def test_ajax():
     age = form.get("age")
     gender = form.get("gender")
     print(name, age, gender)
-    sql = "SELECT au.id AS user_id, au.username AS username, r.name AS role_name, r.auth_set AS auth_set" \
-          " FROM admin_user au INNER JOIN role r ON au.role_id = r.id where au.id = :user_id"
+    # sql = "SELECT au.id AS user_id, au.username AS username, r.name AS role_name, r.auth_set AS auth_set" \
+    #       " FROM admin_user au INNER JOIN role r ON au.role_id = r.id where au.id = :user_id"
 
-    return jsonify(SqlUtil.exe_sql(sql, {"user_id": 1}))
+    sql = "SELECT DATE_FORMAT(c.`create_time`, '%Y-%m-%d %T') AS colTime, u.`username` AS username, " \
+          " v.`title` AS title, v.`info` AS info FROM collection c LEFT JOIN `user` u ON c.`user_id` = u.`id`" \
+          " LEFT JOIN video v ON c.`video_id` = v.`id` WHERE c.`user_id` = :user_id"
+
+    return jsonify(SqlUtil.exe_sql(sql, {"user_id": 2}))
 
 
 # 删除标签
