@@ -246,11 +246,17 @@ def pwd():
     return render_template("home/pwd.html", form=form)
 
 
-# 会员用户评论
+# 会员中心评论
 @home.route("/comment", methods=["GET", "POST"])
 @login_req
 def comment():
-    return render_template("home/comment.html")
+    user_id = session["user_id"]
+    page = int(request.args.get("page", 1))
+    size = int(request.args.get("size", 10))
+    page_data = db.session.query(User.avatar, User.username, Comment.create_time, Comment.content) \
+        .join(User, User.id == Comment.user_id).filter(User.id == user_id).order_by(Comment.id.desc()) \
+        .paginate(page=page, per_page=size)
+    return render_template("home/comment.html", page_data=page_data)
 
 
 @home.route("/login_log", methods=["GET", "POST"])
@@ -294,11 +300,18 @@ def collection_add():
     return jsonify(ResultEnum.obj2json(ResultEnum.SUCCESS.value))
 
 
-# 视频收藏列表
+# 会员中心收藏
 @home.route("/collection", methods=["GET", "POST"])
 @login_req
 def collection():
-    return render_template("home/collection.html")
+    user_id = session["user_id"]
+    page = int(request.args.get("page", 1))
+    size = int(request.args.get("size", 10))
+    page_data = db.session.query(Collection.video_id, Video.logo, Video.title, Video.info)\
+        .join(Video, Video.id == Collection.video_id).join(User, User.id == Collection.user_id)\
+        .filter(User.id == user_id).order_by(Collection.id.desc())\
+        .paginate(page=page, per_page=size)
+    return render_template("home/collection.html", page_data=page_data)
 
 
 @home.route("/play", methods=["GET", "POST"])
