@@ -1,5 +1,5 @@
 {% extends "home/home.html" %}
-{% import "ui/home_page.html" as pg %}
+{% import "ui/search_page.html" as pg %}
 
 {% block css %}
 <style>
@@ -40,7 +40,7 @@
 
     </div>
     <div class="col-md-12 text-center">
-        {{ pg.page(page_data, "home.search") }}
+        {{ pg.page(page_data, "home.search", key_word) }}
     </div>
 </div>
 
