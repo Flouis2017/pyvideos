@@ -9,15 +9,15 @@ app = Flask(__name__)
 app.config['JSON_AS_ASCII'] = False
 
 # 配置数据库连接配置
-app.config["SQLALCHEMY_DATABASE_URI"] = "mysql://root:Flp8084175@212.64.7.214:3306/pyvideos"
-# app.config["SQLALCHEMY_DATABASE_URI"] = "mysql://root:root@127.0.0.1:3306/pyvideos"
+# app.config["SQLALCHEMY_DATABASE_URI"] = "mysql://root:Flp8084175@212.64.7.214:3306/pyvideos"
+app.config["SQLALCHEMY_DATABASE_URI"] = "mysql://root:root@127.0.0.1:3306/pyvideos"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = True
 app.config["SECRET_KEY"] = '22e7de005efe42179caef02d6abf0474'
 
 app.config["UP_DIR"] = os.path.join(os.path.abspath(os.path.dirname(__file__)), "static/upload")
 
-# app.debug = True
-app.debug = False
+app.debug = True
+# app.debug = False
 db = SQLAlchemy(app)
 
 from app.home import home as home_blueprint
